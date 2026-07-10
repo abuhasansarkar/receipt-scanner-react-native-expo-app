@@ -3,7 +3,7 @@ import { isClerkAPIResponseError } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/Button";
@@ -37,7 +37,7 @@ export default function SignUpScreen() {
         setShowCodeInput(true);
       } else {
         AuthService.signIn(name.trim() || email.trim(), email.trim());
-        router.back();
+        router.replace("/(tabs)");
       }
     } catch (err) {
       if (isClerkAPIResponseError(err)) {
@@ -56,19 +56,54 @@ export default function SignUpScreen() {
     setError(null);
     try {
       if (signUp && isClerkConfigured) {
-        const result = await signUp.attemptEmailAddressVerification({
-          code: code.trim(),
-        });
-        if (result.status === "complete") {
-          await setActive?.({ session: result.createdSessionId });
-          router.back();
+        await signUp.attemptEmailAddressVerification({ code: code.trim() });
+
+        const trySetSession = async (sid: string | null | undefined) => {
+          if (!sid) return false;
+          await setActive?.({ session: sid });
+          router.replace("/(tabs)");
+          return true;
+        };
+
+        if (await trySetSession(signUp.createdSessionId)) return;
+
+        const emailStatus = signUp.verifications?.emailAddress?.status;
+        const signUpStatus = signUp.status;
+
+        if (emailStatus === "verified" || signUpStatus === "complete") {
+          if (await trySetSession(signUp.createdSessionId)) return;
         }
+
+        if (emailStatus === "verified" || signUpStatus === "missing_requirements" || signUpStatus === null) {
+          const displayName = name.trim() || email.trim().split("@")[0] || "User";
+          const [firstName = "", ...lastNameParts] = displayName.split(" ");
+          await signUp.update({
+            firstName,
+            lastName: lastNameParts.join(" ") || undefined,
+          });
+
+          if (await trySetSession(signUp.createdSessionId)) return;
+
+          if (signUp.createdUserId) {
+            const future = (signUp as any).__internal_future;
+            if (future?.finalize) {
+              const { error: finalErr } = await future.finalize();
+              if (!finalErr) {
+                if (await trySetSession(future.createdSessionId || signUp.createdSessionId)) return;
+                router.replace("/(tabs)");
+                return;
+              }
+            }
+          }
+        }
+
+        setError("Unable to complete sign-up. Please try again.");
       }
     } catch (err) {
       if (isClerkAPIResponseError(err)) {
-        setError(err.errors[0]?.message ?? "Invalid code");
+        setError(err.errors[0]?.message ?? "Something went wrong");
       } else {
-        setError("Invalid code");
+        setError("Something went wrong");
       }
     } finally {
       setPending(false);
@@ -103,7 +138,7 @@ export default function SignUpScreen() {
       const { createdSessionId, setActive: oauthSetActive } = await startOAuth();
       if (createdSessionId) {
         await oauthSetActive?.({ session: createdSessionId });
-        router.back();
+        router.replace("/(tabs)");
       }
     } catch (err) {
       if (isClerkAPIResponseError(err)) {
@@ -121,6 +156,7 @@ export default function SignUpScreen() {
   if (showCodeInput) {
     return (
       <SafeAreaView className="flex-1 bg-surface">
+        <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
           <View className="flex-1 justify-center px-8">
             <View className="mb-8 items-center">
@@ -156,11 +192,12 @@ export default function SignUpScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
+      <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
         <View className="flex-1 justify-center px-8">
           <View className="mb-8 items-center">
-            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/15">
-              <Ionicons name="sparkles-outline" size={32} color="#22c55e" />
+            <View className="mb-4 items-center justify-center rounded-2xl">
+              <Image source={require("@/assets/images/receipt.png")} className="h-60 w-60" />
             </View>
             <Text className="text-2xl font-bold text-white">Create account</Text>
             <Text className="mt-1 text-sm text-zinc-500">Start tracking your expenses</Text>

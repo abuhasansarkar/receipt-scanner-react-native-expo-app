@@ -4,10 +4,20 @@ interface CardProps extends ViewProps {
   className?: string;
 }
 
-export function Card({ className, ...props }: CardProps) {
+export function Card({ className, style, ...props }: CardProps) {
   return (
     <View
-      className={`rounded-2xl border border-surface-border bg-surface-raised p-4 ${className ?? ""}`}
+      style={[
+        {
+          backgroundColor: "#1a221a",
+          borderRadius: 24,
+          borderWidth: 1,
+          borderColor: "#3d4a3d",
+          padding: 16,
+        },
+        style,
+      ]}
+      className={className}
       {...props}
     />
   );
