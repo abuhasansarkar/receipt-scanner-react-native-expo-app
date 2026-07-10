@@ -1,24 +1,52 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import "@/global.css";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ClerkProvider } from "@clerk/clerk-expo";
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import { isClerkConfigured, publishableKey, tokenCache } from "@/lib/clerk";
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
+function RootLayoutInner() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <ThemeProvider value={DarkTheme}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="receipt/[id]"
+          options={{
+            headerShown: true,
+            title: "Receipt",
+            presentation: "modal",
+            headerStyle: { backgroundColor: "#0b0b0f" },
+            headerTintColor: "#ffffff",
+          }}
+        />
+        <Stack.Screen name="(auth)" options={{ presentation: "modal" }} />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </ThemeProvider>
   );
+}
+
+export default function RootLayout() {
+  const content = (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <RootLayoutInner />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+
+  if (isClerkConfigured) {
+    return (
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        {content}
+      </ClerkProvider>
+    );
+  }
+
+  return content;
 }

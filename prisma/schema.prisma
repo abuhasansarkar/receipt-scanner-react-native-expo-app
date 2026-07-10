@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String?  @unique
+  name      String?
+  email     String   @unique
+  imageUrl  String?
+  plan      String   @default("free")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  receipts    Receipt[]
+  scanLogs    ScanLog[]
+  syncLogs    SyncLog[]
+}
+
+model Receipt {
+  id        String   @id
+  userId    String?
+  merchant  String
+  total     Float
+  currency  String   @default("USD")
+  date      DateTime
+  category  String
+  status    String   @default("needs_review")
+  notes     String?
+  imageUri  String?
+  items     Json     @default("[]")
+  confidence Json?
+  aiSuggestions Json?
+  isTaxDeductible Boolean @default(false)
+  taxInfo   Json?
+  source    String   @default("manual")
+  receiptNumber String?
+  tags      Json?    @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User?    @relation(fields: [userId], references: [id])
+  scanLogs ScanLog[]
+}
+
+model ScanLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  receiptId String?
+  source    String   @default("camera")
+  fileType  String   @default("image")
+  modelUsed String   @default("openrouter/free")
+  tokensUsed Int?
+  confidence Float?
+  rawResponse Json?
+  success   Boolean  @default(true)
+  error     String?
+  createdAt DateTime @default(now())
+
+  user    User?   @relation(fields: [userId], references: [id])
+  receipt Receipt? @relation(fields: [receiptId], references: [id])
+}
+
+model SyncLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  direction String   @default("up") // "up" = local->cloud, "down" = cloud->local
+  status    String   @default("pending") // pending, success, failed
+  recordsSynced Int  @default(0)
+  error     String?
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+
+  user User? @relation(fields: [userId], references: [id])
+}
