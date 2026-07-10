@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link, useRouter, type Href } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ExpenseChart } from "@/components/charts/ExpenseChart";
 import { ReceiptCard } from "@/components/receipt/ReceiptCard";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useMonthlyInsights, useWeeklyInsights } from "@/features/insights/hooks";
@@ -24,119 +24,167 @@ export default function DashboardScreen() {
   const totalScans = receipts.length;
 
   const trendData = [
-    { label: "Mon", value: monthly.dailyAverage, color: "#22c55e" },
-    { label: "Tue", value: monthly.dailyAverage * 0.8, color: "#22c55e" },
-    { label: "Wed", value: monthly.dailyAverage * 1.2, color: "#22c55e" },
-    { label: "Thu", value: monthly.dailyAverage * 0.9, color: "#22c55e" },
-    { label: "Fri", value: monthly.dailyAverage * 1.1, color: "#22c55e" },
-    { label: "Sat", value: monthly.dailyAverage * 0.5, color: "#22c55e" },
-    { label: "Sun", value: monthly.dailyAverage * 0.3, color: "#22c55e" },
+    { label: "Mon", value: monthly.dailyAverage, color: "#4be277" },
+    { label: "Tue", value: monthly.dailyAverage * 0.8, color: "#4be277" },
+    { label: "Wed", value: monthly.dailyAverage * 1.2, color: "#4be277" },
+    { label: "Thu", value: monthly.dailyAverage * 0.9, color: "#4be277" },
+    { label: "Fri", value: monthly.dailyAverage * 1.1, color: "#4be277" },
+    { label: "Sat", value: monthly.dailyAverage * 0.5, color: "#4be277" },
+    { label: "Sun", value: monthly.dailyAverage * 0.3, color: "#4be277" },
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
-      <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="mb-6 mt-2 flex-row items-center justify-between">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#0e150e" }} edges={["top"]}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8, marginBottom: 24 }}>
           <View>
-            <Text className="text-sm text-zinc-500">Welcome back</Text>
-            <Text className="text-2xl font-bold text-white">ReceiptBrain</Text>
+            <Text style={{ fontSize: 12, color: "#869585", fontWeight: "400", letterSpacing: 0.5 }}>Welcome back</Text>
+            <Text style={{ fontSize: 28, fontWeight: "700", color: "#dce5d9", lineHeight: 34, letterSpacing: -0.01 * 28 }}>
+              Receipt
+            </Text>
           </View>
-          <View className="flex-row items-center gap-3">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             {statusCounts.needs_review > 0 && (
-              <View className="relative">
-                <Ionicons name="eye-outline" size={22} color="#f59e0b" />
-                <View className="absolute -right-1 -top-1 h-4 w-4 items-center justify-center rounded-full bg-amber-500">
-                  <Text className="text-[9px] font-bold text-black">{statusCounts.needs_review}</Text>
+              <View style={{ position: "relative" }}>
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#242c24", alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name="notifications-outline" size={20} color="#f59e0b" />
+                </View>
+                <View style={{ position: "absolute", top: -2, right: -2, width: 16, height: 16, borderRadius: 8, backgroundColor: "#f59e0b", alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ fontSize: 9, fontWeight: "700", color: "#000" }}>{statusCounts.needs_review}</Text>
                 </View>
               </View>
             )}
-            <Ionicons name="sparkles-outline" size={26} color="#22c55e" />
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#242c24", alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="sparkles-outline" size={20} color="#4be277" />
+            </View>
           </View>
         </View>
 
-        <View className="mb-4 flex-row gap-3">
-          <Card className="flex-1">
-            <Text className="text-xs uppercase tracking-wide text-zinc-500">This week</Text>
-            <Text className="mt-1 text-2xl font-bold text-white">{formatCurrencyShort(weekly.weekTotal)}</Text>
+        {/* Total Spending Hero Card */}
+        <LinearGradient
+          colors={["#1a221a", "#161d16"]}
+          style={{ borderRadius: 24, borderWidth: 1, borderColor: "#3d4a3d", padding: 20, marginBottom: 16 }}
+        >
+          <Text style={{ fontSize: 12, color: "#869585", fontWeight: "600", letterSpacing: 0.5, textTransform: "uppercase" }}>
+            Total this month
+          </Text>
+          <Text style={{ fontSize: 34, fontWeight: "700", color: "#dce5d9", lineHeight: 40, letterSpacing: -0.02 * 34, marginTop: 4 }}>
+            {formatCurrencyShort(monthly.monthTotal)}
+          </Text>
+          {monthly.projectedTotal > monthly.monthTotal && (
+            <Text style={{ fontSize: 12, color: "#869585", marginTop: 4 }}>
+              Projected: {formatCurrencyShort(monthly.projectedTotal)}
+            </Text>
+          )}
+          <View style={{ marginTop: 16 }}>
+            <ExpenseChart data={trendData} height={80} />
+          </View>
+        </LinearGradient>
+
+        {/* Stats Row */}
+        <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
+          <Card style={{ flex: 1, padding: 16 }}>
+            <Text style={{ fontSize: 11, color: "#869585", fontWeight: "600", letterSpacing: 0.5, textTransform: "uppercase" }}>This week</Text>
+            <Text style={{ fontSize: 20, fontWeight: "600", color: "#dce5d9", lineHeight: 28, marginTop: 4 }}>
+              {formatCurrencyShort(weekly.weekTotal)}
+            </Text>
             {weekly.changeVsLastWeek !== 0 && (
-              <Text className={`mt-0.5 text-xs ${weekly.changeVsLastWeek > 0 ? "text-amber-400" : "text-brand-500"}`}>
-                {weekly.changeVsLastWeek >= 0 ? "\u25B2" : "\u25BC"} {Math.abs(Math.round(weekly.changeVsLastWeek * 100))}%
+              <Text style={{ fontSize: 12, color: weekly.changeVsLastWeek > 0 ? "#f59e0b" : "#4be277", marginTop: 2 }}>
+                {weekly.changeVsLastWeek >= 0 ? "▲" : "▼"} {Math.abs(Math.round(weekly.changeVsLastWeek * 100))}%
               </Text>
             )}
           </Card>
-          <Card className="flex-1">
-            <Text className="text-xs uppercase tracking-wide text-zinc-500">This month</Text>
-            <Text className="mt-1 text-2xl font-bold text-white">{formatCurrencyShort(monthly.monthTotal)}</Text>
-            {monthly.projectedTotal > monthly.monthTotal && (
-              <Text className="mt-0.5 text-xs text-zinc-500">Projected: {formatCurrencyShort(monthly.projectedTotal)}</Text>
-            )}
+          <Card style={{ flex: 1, padding: 16 }}>
+            <Text style={{ fontSize: 11, color: "#869585", fontWeight: "600", letterSpacing: 0.5, textTransform: "uppercase" }}>Scans left</Text>
+            <Text style={{ fontSize: 20, fontWeight: "600", color: "#dce5d9", lineHeight: 28, marginTop: 4 }}>
+              {FREE_PLAN_MONTHLY_SCAN_LIMIT - totalScans}
+            </Text>
+            <ProgressBar value={totalScans} max={FREE_PLAN_MONTHLY_SCAN_LIMIT} color="#4be277" className="mt-2" height={4} />
           </Card>
         </View>
 
+        {/* Alerts */}
         {weekly.alerts.length > 0 && (
-          <Card className="mb-4 border-amber-500/30 bg-amber-500/10">
+          <View style={{ backgroundColor: "#f59e0b18", borderRadius: 16, borderWidth: 1, borderColor: "#f59e0b30", padding: 14, marginBottom: 16 }}>
             {weekly.alerts.slice(0, 2).map((alert, i) => (
-              <View key={i} className="flex-row items-center gap-2">
+              <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: i < weekly.alerts.length - 1 ? 6 : 0 }}>
                 <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" />
-                <Text className="flex-1 text-xs text-amber-200">{alert}</Text>
+                <Text style={{ flex: 1, fontSize: 12, color: "#fde68a" }}>{alert}</Text>
               </View>
             ))}
-          </Card>
+          </View>
         )}
 
-        <Card className="mb-4">
-          <Text className="mb-3 text-xs uppercase tracking-wide text-zinc-500">Weekly trend</Text>
-          <ExpenseChart data={trendData} height={100} />
-        </Card>
-
-        <Button
-          label="Scan a receipt"
-          icon={<Ionicons name="camera" size={18} color="#000000" />}
+        {/* Scan CTA */}
+        <Pressable
           onPress={() => router.push("/(tabs)/scan")}
-        />
+          style={{ marginBottom: 24, borderRadius: 16, overflow: "hidden" }}
+        >
+          <LinearGradient
+            colors={["#4be277", "#0566d9", "#b89cff"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 16 }}
+          >
+            <Ionicons name="camera" size={20} color="#003915" />
+            <Text style={{ fontSize: 16, fontWeight: "600", color: "#003915" }}>Scan a receipt</Text>
+          </LinearGradient>
+        </Pressable>
 
-        <View className="mb-3 mt-8 flex-row items-center justify-between">
-          <Text className="text-lg font-semibold text-white">Recent receipts</Text>
-          <Link href="/(tabs)/receipts" className="text-sm text-brand-500">See all</Link>
+        {/* Recent Receipts */}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <Text style={{ fontSize: 20, fontWeight: "600", color: "#dce5d9", lineHeight: 28 }}>Recent receipts</Text>
+          <Link href="/(tabs)/receipts" style={{ fontSize: 14, color: "#4be277", fontWeight: "500" }}>See all</Link>
         </View>
 
         {recent.length === 0 ? (
           <Card>
-            <Text className="text-center text-sm text-zinc-500">No receipts yet. Scan your first one to get started.</Text>
+            <Text style={{ textAlign: "center", fontSize: 14, color: "#869585" }}>
+              No receipts yet. Scan your first one to get started.
+            </Text>
           </Card>
         ) : (
           recent.map((receipt) => (
-            <ReceiptCard key={receipt.id} receipt={receipt} onPress={() => router.push(`/receipt/${receipt.id}` as Href)} />
+            <ReceiptCard
+              key={receipt.id}
+              receipt={receipt}
+              onPress={() => router.push(`/receipt/${receipt.id}` as Href)}
+            />
           ))
         )}
 
+        {/* Tax Deductible */}
         {taxTotal > 0 && (
-          <Card className="mt-4 border-brand-500/20 bg-brand-500/5">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="receipt-outline" size={16} color="#22c55e" />
-                <Text className="text-sm font-medium text-white">Tax deductible total</Text>
+          <View style={{ backgroundColor: "#4be27710", borderRadius: 16, borderWidth: 1, borderColor: "#4be27730", padding: 16, marginTop: 16 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="receipt-outline" size={16} color="#4be277" />
+                <Text style={{ fontSize: 14, fontWeight: "500", color: "#dce5d9" }}>Tax deductible total</Text>
               </View>
-              <Text className="text-base font-bold text-brand-500">{formatCurrency(taxTotal)}</Text>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: "#4be277" }}>{formatCurrency(taxTotal)}</Text>
             </View>
-            <ProgressBar value={taxTotal} max={monthly.monthTotal || 1} color="#22c55e" className="mt-2" />
-            <Text className="mt-1 text-[10px] text-zinc-500">Track deductible expenses for tax season</Text>
-          </Card>
+            <ProgressBar value={taxTotal} max={monthly.monthTotal || 1} color="#4be277" className="mt-2" />
+          </View>
         )}
 
-        <View className="mt-4 flex-row gap-3">
-          <Card className="flex-1">
-            <Text className="text-xs text-zinc-500">Total scans</Text>
-            <Text className="text-lg font-bold text-white">{totalScans}</Text>
-            <ProgressBar value={totalScans} max={FREE_PLAN_MONTHLY_SCAN_LIMIT} color="#22c55e" className="mt-2" height={4} />
-            <Text className="mt-1 text-[10px] text-zinc-500">{FREE_PLAN_MONTHLY_SCAN_LIMIT - totalScans} free scans left</Text>
+        {/* Need Review */}
+        {statusCounts.needs_review > 0 && (
+          <Card style={{ marginTop: 16 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="eye-outline" size={16} color="#f59e0b" />
+                <Text style={{ fontSize: 14, fontWeight: "500", color: "#dce5d9" }}>Need review</Text>
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: "700", color: "#f59e0b" }}>{statusCounts.needs_review}</Text>
+            </View>
+            <Text style={{ fontSize: 11, color: "#869585", marginTop: 4 }}>{statusCounts.verified} verified receipts</Text>
           </Card>
-          <Card className="flex-1">
-            <Text className="text-xs text-zinc-500">Need review</Text>
-            <Text className="text-lg font-bold text-amber-400">{statusCounts.needs_review}</Text>
-            <Text className="mt-1 text-[10px] text-zinc-500">{statusCounts.verified} verified</Text>
-          </Card>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

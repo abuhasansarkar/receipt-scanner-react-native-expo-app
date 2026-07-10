@@ -3,7 +3,7 @@ import { isClerkAPIResponseError } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/Button";
@@ -43,11 +43,11 @@ export default function SignInScreen() {
           }
         } else if (result.status === "complete") {
           await setActive?.({ session: result.createdSessionId });
-          router.back();
+          router.replace("/(tabs)");
         }
       } else {
         AuthService.signIn(email.trim(), email.trim());
-        router.back();
+        router.replace("/(tabs)");
       }
     } catch (err) {
       if (isClerkAPIResponseError(err)) {
@@ -72,7 +72,12 @@ export default function SignInScreen() {
         });
         if (result.status === "complete") {
           await setActive?.({ session: result.createdSessionId });
-          router.back();
+          router.replace("/(tabs)");
+        } else if (result.createdSessionId) {
+          await setActive?.({ session: result.createdSessionId });
+          router.replace("/(tabs)");
+        } else {
+          setError("Verification failed. Please try again.");
         }
       }
     } catch (err) {
@@ -95,7 +100,7 @@ export default function SignInScreen() {
       const { createdSessionId, setActive: oauthSetActive } = await startOAuth();
       if (createdSessionId) {
         await oauthSetActive?.({ session: createdSessionId });
-        router.back();
+        router.replace("/(tabs)");
       }
     } catch (err) {
       if (isClerkAPIResponseError(err)) {
@@ -113,6 +118,7 @@ export default function SignInScreen() {
   if (showCodeInput) {
     return (
       <SafeAreaView className="flex-1 bg-surface">
+        <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
           <View className="flex-1 justify-center px-8">
             <View className="mb-8 items-center">
@@ -148,12 +154,14 @@ export default function SignInScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
+      <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
         <View className="flex-1 justify-center px-8">
           <View className="mb-8 items-center">
-            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/15">
-              <Ionicons name="receipt-outline" size={32} color="#22c55e" />
-            </View>
+<View className="mb-4 items-center justify-center rounded-2xl">
+
+  <Image source={require("@/assets/images/receipt.png")} className="h-60 w-60" />
+</View>
             <Text className="text-2xl font-bold text-white">Welcome back</Text>
             <Text className="mt-1 text-sm text-zinc-500">Sign in to your account</Text>
           </View>
@@ -172,7 +180,7 @@ export default function SignInScreen() {
             <Text className="-mt-3 mb-4 text-xs text-red-400">{error}</Text>
           )}
 
-          <Button label="Send verification code" onPress={handleSendCode} disabled={!email.trim() || busy} loading={busy} />
+          <Button className="text-white" label="Send verification code" onPress={handleSendCode} disabled={!email.trim() || busy} loading={busy} />
 
           {isClerkConfigured && (
             <>
@@ -221,7 +229,7 @@ export default function SignInScreen() {
               <Text className="text-sm font-semibold text-brand-500">Sign up</Text>
             </Pressable>
           </View>
-          <Pressable onPress={() => router.back()} className="mt-4 items-center">
+          <Pressable onPress={() => router.replace("/(tabs)")} className="mt-4 items-center">
             <Text className="text-sm text-zinc-500">Continue offline</Text>
           </Pressable>
         </View>

@@ -1,5 +1,6 @@
+import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, Text, type PressableProps } from "react-native";
+import { ActivityIndicator, Pressable, Text, type PressableProps, View } from "react-native";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -11,20 +12,6 @@ interface ButtonProps extends Omit<PressableProps, "children"> {
   className?: string;
 }
 
-const CONTAINER_STYLES: Record<Variant, string> = {
-  primary: "bg-brand-500 active:bg-brand-600",
-  secondary: "bg-surface-raised border border-surface-border active:bg-surface-border",
-  ghost: "bg-transparent",
-  danger: "bg-red-600/90 active:bg-red-600",
-};
-
-const TEXT_STYLES: Record<Variant, string> = {
-  primary: "text-black",
-  secondary: "text-white",
-  ghost: "text-brand-500",
-  danger: "text-white",
-};
-
 export function Button({
   label,
   variant = "primary",
@@ -35,20 +22,63 @@ export function Button({
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+
+  if (variant === "primary") {
+    return (
+      <Pressable
+        disabled={isDisabled}
+        className={`overflow-hidden rounded-2xl ${isDisabled ? "opacity-50" : ""} ${className ?? ""}`}
+        {...props}
+      >
+        <LinearGradient
+          colors={["#4be277", "#0566d9", "#b89cff"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingHorizontal: 20, paddingVertical: 14 }}
+        >
+          {loading ? (
+            <ActivityIndicator color="#003915" />
+          ) : icon}
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#003915" }}>{label}</Text>
+        </LinearGradient>
+      </Pressable>
+    );
+  }
+
+  if (variant === "secondary") {
+    return (
+      <Pressable
+        disabled={isDisabled}
+        className={`flex-row items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3.5 ${isDisabled ? "opacity-50" : "active:opacity-70"} ${className ?? ""}`}
+        {...props}
+      >
+        {loading ? <ActivityIndicator color="#ffffff" /> : icon}
+        <Text className="text-base font-semibold text-white">{label}</Text>
+      </Pressable>
+    );
+  }
+
+  if (variant === "danger") {
+    return (
+      <Pressable
+        disabled={isDisabled}
+        className={`flex-row items-center justify-center gap-2 rounded-2xl bg-red-600/90 px-5 py-3.5 ${isDisabled ? "opacity-50" : "active:bg-red-600"} ${className ?? ""}`}
+        {...props}
+      >
+        {loading ? <ActivityIndicator color="#ffffff" /> : icon}
+        <Text className="text-base font-semibold text-white">{label}</Text>
+      </Pressable>
+    );
+  }
+
   return (
     <Pressable
       disabled={isDisabled}
-      className={`flex-row items-center justify-center gap-2 rounded-2xl px-5 py-3.5 ${CONTAINER_STYLES[variant]} ${
-        isDisabled ? "opacity-50" : ""
-      } ${className ?? ""}`}
+      className={`flex-row items-center justify-center gap-2 rounded-2xl px-5 py-3.5 ${isDisabled ? "opacity-50" : ""} ${className ?? ""}`}
       {...props}
     >
-      {loading ? (
-        <ActivityIndicator color={variant === "primary" ? "#000000" : "#ffffff"} />
-      ) : (
-        icon
-      )}
-      <Text className={`text-base font-semibold ${TEXT_STYLES[variant]}`}>{label}</Text>
+      {loading ? <ActivityIndicator color="#4be277" /> : icon}
+      <Text className="text-base font-semibold text-brand-500">{label}</Text>
     </Pressable>
   );
 }

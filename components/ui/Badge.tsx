@@ -5,10 +5,12 @@ interface BadgeProps {
   color?: string;
 }
 
-export function Badge({ label, color = "#22c55e" }: BadgeProps) {
+export function Badge({ label, color = "#4be277" }: BadgeProps) {
   return (
-    <View style={{ backgroundColor: `${color}22` }} className="self-start rounded-full px-2.5 py-1">
-      <Text style={{ color }} className="text-xs font-semibold">
+    <View
+      style={{ backgroundColor: `${color}26`, borderRadius: 9999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" }}
+    >
+      <Text style={{ color, fontSize: 11, fontWeight: "600", letterSpacing: 0.5 }}>
         {label}
       </Text>
     </View>
