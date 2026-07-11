@@ -155,16 +155,16 @@ export default function SignUpScreen() {
 
   if (showCodeInput) {
     return (
-      <SafeAreaView className="flex-1 bg-surface">
+      <SafeAreaView className="flex-1 bg-surface-base">
         <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
           <View className="flex-1 justify-center px-8">
             <View className="mb-8 items-center">
-              <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/15">
-                <Ionicons name="mail-outline" size={32} color="#22c55e" />
+              <View className="mb-4 w-16 h-16 items-center justify-center rounded-2xl bg-brand/15">
+                <Ionicons name="mail-outline" size={32} color="#4be277" />
               </View>
-              <Text className="text-2xl font-bold text-white">Verify your email</Text>
-              <Text className="mt-1 text-center text-sm text-zinc-500">
+              <Text className="text-2xl font-bold text-surface-text">Verify your email</Text>
+              <Text className="mt-1 text-center text-sm text-muted">
                 We sent a verification code to{"\n"}{email}
               </Text>
             </View>
@@ -172,9 +172,9 @@ export default function SignUpScreen() {
               value={code}
               onChangeText={setCode}
               placeholder="Verification code"
-              placeholderTextColor="#71717a"
+              placeholderTextColor="#5a6d5a"
               keyboardType="number-pad"
-              className="mb-6 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 text-center text-2xl tracking-widest text-white"
+              className="mb-6 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-center text-2xl tracking-widest text-surface-text"
               maxLength={6}
             />
             {error && (
@@ -182,7 +182,7 @@ export default function SignUpScreen() {
             )}
             <Button label="Create account" onPress={handleVerifyCode} disabled={code.trim().length < 4 || busy} loading={busy} />
             <Pressable onPress={handleResendCode} className="mt-4 items-center">
-              <Text className="text-sm text-zinc-500">Resend code</Text>
+              <Text className="text-sm text-muted">Resend code</Text>
             </Pressable>
           </View>
         </KeyboardAvoidingView>
@@ -191,7 +191,7 @@ export default function SignUpScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-surface">
+    <SafeAreaView className="flex-1 bg-surface-base">
       <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
         <View className="flex-1 justify-center px-8">
@@ -199,24 +199,24 @@ export default function SignUpScreen() {
             <View className="mb-4 items-center justify-center rounded-2xl">
               <Image source={require("@/assets/images/receipt.png")} className="h-60 w-60" />
             </View>
-            <Text className="text-2xl font-bold text-white">Create account</Text>
-            <Text className="mt-1 text-sm text-zinc-500">Start tracking your expenses</Text>
+            <Text className="text-2xl font-bold text-surface-text">Create account</Text>
+            <Text className="mt-1 text-sm text-muted">Start tracking your expenses</Text>
           </View>
 
           <TextInput
             value={name}
             onChangeText={setName}
             placeholder="Your name (optional)"
-            placeholderTextColor="#71717a"
-            className="mb-4 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 text-white"
+            placeholderTextColor="#5a6d5a"
+            className="mb-4 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-surface-text"
             autoCapitalize="words"
           />
           <TextInput
             value={email}
             onChangeText={setEmail}
             placeholder="Email address"
-            placeholderTextColor="#71717a"
-            className="mb-4 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 text-white"
+            placeholderTextColor="#5a6d5a"
+            className="mb-4 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-surface-text"
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -231,7 +231,7 @@ export default function SignUpScreen() {
             <>
               <View className="my-6 flex-row items-center gap-3">
                 <View className="flex-1 h-px bg-surface-border" />
-                <Text className="text-xs text-zinc-500">Or continue with</Text>
+                <Text className="text-xs text-muted">Or continue with</Text>
                 <View className="flex-1 h-px bg-surface-border" />
               </View>
 
@@ -239,28 +239,28 @@ export default function SignUpScreen() {
                 <Pressable
                   onPress={() => handleSocialSignUp("google")}
                   disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 active:opacity-70"
+                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
                 >
                   {socialPending === "google" ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
                     <>
-                      <Ionicons name="logo-google" size={18} color="#ffffff" />
-                      <Text className="text-sm font-medium text-white">Google</Text>
+                      <Ionicons name="logo-google" size={18} color="#dce5d9" />
+                      <Text className="text-sm font-medium text-surface-text">Google</Text>
                     </>
                   )}
                 </Pressable>
                 <Pressable
                   onPress={() => handleSocialSignUp("apple")}
                   disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 active:opacity-70"
+                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
                 >
                   {socialPending === "apple" ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
                     <>
-                      <Ionicons name="logo-apple" size={18} color="#ffffff" />
-                      <Text className="text-sm font-medium text-white">Apple</Text>
+                      <Ionicons name="logo-apple" size={18} color="#dce5d9" />
+                      <Text className="text-sm font-medium text-surface-text">Apple</Text>
                     </>
                   )}
                 </Pressable>
@@ -269,9 +269,9 @@ export default function SignUpScreen() {
           )}
 
           <View className="mt-6 flex-row justify-center gap-1">
-            <Text className="text-sm text-zinc-500">Already have an account?</Text>
+            <Text className="text-sm text-muted">Already have an account?</Text>
             <Pressable onPress={() => router.push("/(auth)/sign-in" as Href)}>
-              <Text className="text-sm font-semibold text-brand-500">Sign in</Text>
+              <Text className="text-sm font-semibold text-brand">Sign in</Text>
             </Pressable>
           </View>
         </View>

@@ -54,7 +54,7 @@ model ScanLog {
   receiptId String?
   source    String   @default("camera")
   fileType  String   @default("image")
-  modelUsed String   @default("openrouter/free")
+  modelUsed String   @default("gemini-2.0-flash")
   tokensUsed Int?
   confidence Float?
   rawResponse Json?

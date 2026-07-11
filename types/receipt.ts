@@ -61,6 +61,7 @@ export interface Receipt {
   status: ReceiptStatus;
   notes?: string;
   imageUri?: string;
+  paymentMethod?: string;
   items?: ReceiptItem[];
   confidence?: FieldConfidence;
   aiSuggestions?: AIFixSuggestion[];

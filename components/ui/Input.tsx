@@ -2,7 +2,6 @@ import { Text, TextInput, View, type TextInputProps } from "react-native";
 
 interface InputProps extends TextInputProps {
   label: string;
-  /** AI extraction confidence (0-1). Renders a "tap to fix" hint when low. */
   confidence?: number;
   error?: string;
   className?: string;
@@ -14,15 +13,15 @@ export function Input({ label, confidence, error, className, ...props }: InputPr
   return (
     <View className="mb-4">
       <View className="mb-1.5 flex-row items-center justify-between">
-        <Text className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</Text>
+        <Text className="text-xs font-medium text-muted">{label}</Text>
         {confidence !== undefined && <ConfidenceHint confidence={confidence} />}
       </View>
       <TextInput
-        placeholderTextColor="#71717a"
-        className={`rounded-xl border px-4 py-3 text-base text-white ${
+        placeholderTextColor="#5a6d5a"
+        className={`rounded-xl border px-4 py-3 text-base text-surface-text ${
           isLowConfidence
             ? "border-amber-500/60 bg-amber-500/10"
-            : "border-surface-border bg-surface-raised"
+            : "border-surface-border bg-surface-container"
         } ${className ?? ""}`}
         {...props}
       />
@@ -38,8 +37,8 @@ function ConfidenceHint({ confidence }: { confidence: number }) {
 
   return (
     <View className="flex-row items-center gap-1.5">
-      <View style={{ backgroundColor: color }} className="h-1.5 w-1.5 rounded-full" />
-      <Text className="text-[10px] text-zinc-500">{label}</Text>
+      <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+      <Text className="text-[10px] text-muted">{label}</Text>
     </View>
   );
 }

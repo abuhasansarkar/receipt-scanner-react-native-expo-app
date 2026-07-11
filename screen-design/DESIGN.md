@@ -103,8 +103,23 @@ spacing:
   stack-md: 16px
   stack-lg: 24px
 ---
-
 ## Brand & Style
+Use NativeWind tailwindcss classes for styling strictly. Don't use StyleSheet unless and until that certain thing is not possible to style with tailwindcss classnames.
+
+Prioritize clean, readable mobile UI.
+
+When building from an attached design image:
+
+- match spacing closely
+- match typography hierarchy
+- match border radius and shadows
+- match layout structure
+- use consistent reusable styles
+- make the UI responsive for different screen sizes
+
+Prefer reusable class patterns through utilities in `global.css`. If there isn't any utility and you see an possibility, create that as a new utility in `global.css` by following BEM method.
+
+
 
 This design system defines a premium, dark-first aesthetic for a next-generation fintech experience. The brand personality is ultra-modern and intelligent, projecting the reliability of a financial institution with the agility of an AI startup. 
 

@@ -1,7 +1,7 @@
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { readAsStringAsync, EncodingType } from "expo-file-system/legacy";
 
-import { isOpenRouterConfigured, scanReceiptImage, scanReceiptPDF } from "@/lib/openrouter";
+import { isGeminiConfigured, scanReceiptImage, scanReceiptPDF } from "@/lib/gemini";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { ScanResult, ScanResultItem } from "@/types/api";
 import type { SupportedCurrency } from "@/types/receipt";
@@ -54,9 +54,9 @@ export async function extractReceiptData(
     return res.json() as Promise<ScanResult>;
   }
 
-  if (isOpenRouterConfigured && image.base64) {
+  if (isGeminiConfigured && image.base64) {
     const result = await scanReceiptImage(image.base64);
-    await logScan({ ...result, source: "camera", fileType: "image", modelUsed: "openrouter/free" });
+    await logScan({ ...result, source: "camera", fileType: "image", modelUsed: "gemini-2.0-flash" });
     return result;
   }
 
@@ -76,9 +76,9 @@ export async function extractReceiptDataFromPDF(
     return res.json() as Promise<ScanResult>;
   }
 
-  if (isOpenRouterConfigured) {
+  if (isGeminiConfigured) {
     const result = await scanReceiptPDF(base64);
-    await logScan({ ...result, source: "pdf", fileType: "pdf", modelUsed: "openrouter/free" });
+    await logScan({ ...result, source: "pdf", fileType: "pdf", modelUsed: "gemini-2.0-flash" });
     return result;
   }
 
@@ -196,6 +196,7 @@ function mockExtractReceiptData(): ScanResult {
     category: selected.category,
     items: selected.items,
     receiptNumber: `RCP-${Date.now().toString(36).toUpperCase()}`,
+    paymentMethod: "Visa ending in 4242",
     confidence: {
       merchant: 0.85,
       total: 0.88,

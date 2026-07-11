@@ -62,24 +62,24 @@ export function ReceiptForm({ receipt, onSave, onDelete }: ReceiptFormProps) {
       <Input label="Merchant" value={merchant} onChangeText={setMerchant} confidence={receipt.confidence?.merchant} placeholder="e.g. Blue Bottle Coffee" />
 
       <View className="mb-4">
-        <Text className="mb-1.5 text-xs font-medium uppercase tracking-wide text-zinc-400">Currency</Text>
+        <Text className="mb-1.5 text-xs font-medium text-muted">Currency</Text>
         <Pressable
           onPress={() => setShowCurrencyPicker(!showCurrencyPicker)}
-          className="rounded-xl border border-surface-border bg-surface-raised px-4 py-3"
+          className="rounded-xl border border-surface-border bg-surface-container px-4 py-3"
         >
-          <Text className="text-base text-white">
+          <Text className="text-base text-surface-text">
             {SUPPORTED_CURRENCIES.find((c) => c.code === currency)?.label ?? currency} ({currency})
           </Text>
         </Pressable>
         {showCurrencyPicker && (
-          <View className="mt-2 rounded-xl border border-surface-border bg-surface-raised p-2">
+          <View className="mt-2 rounded-xl border border-surface-border bg-surface-container p-2">
             {SUPPORTED_CURRENCIES.map((c) => (
               <Pressable
                 key={c.code}
                 onPress={() => { setCurrency(c.code); setShowCurrencyPicker(false); }}
-                className={`rounded-lg px-3 py-2.5 ${c.code === currency ? "bg-brand-500/15" : ""}`}
+                className={`rounded-lg px-3 py-2.5 ${c.code === currency ? "bg-brand/15" : ""}`}
               >
-                <Text className={`text-sm ${c.code === currency ? "text-brand-500 font-semibold" : "text-white"}`}>
+                <Text className={`text-sm ${c.code === currency ? "text-brand font-semibold" : "text-surface-text"}`}>
                   {c.symbol} {c.label} ({c.code})
                 </Text>
               </Pressable>
@@ -90,32 +90,32 @@ export function ReceiptForm({ receipt, onSave, onDelete }: ReceiptFormProps) {
 
       <Input label="Total" value={total} onChangeText={setTotal} keyboardType="decimal-pad" confidence={receipt.confidence?.total} placeholder="0.00" />
 
-      <Text className="mb-1.5 text-xs font-medium uppercase tracking-wide text-zinc-400">Category</Text>
+      <Text className="mb-1.5 text-xs font-medium text-muted">Category</Text>
       <CategoryPicker value={category} onChange={setCategory} />
 
       <LineItemEditor items={items} currency={currency} onChange={setItems} />
 
       <Input label="Notes" value={notes} onChangeText={setNotes} placeholder="Optional notes" multiline />
 
-      <View className="mb-4 rounded-xl border border-surface-border bg-surface-raised p-4">
+      <View className="mb-4 rounded-xl border border-surface-border bg-surface-container p-4">
         <View className="flex-row items-center justify-between">
           <View className="flex-1">
-            <Text className="text-sm font-medium text-white">Tax deductible</Text>
-            <Text className="text-xs text-zinc-500">Mark this expense for tax reporting</Text>
+            <Text className="text-sm font-medium text-surface-text">Tax deductible</Text>
+            <Text className="text-xs text-muted">Mark this expense for tax reporting</Text>
           </View>
           <Switch
             value={isTaxDeductible}
             onValueChange={setIsTaxDeductible}
-            trackColor={{ false: "#24242c", true: "#22c55e50" }}
-            thumbColor={isTaxDeductible ? "#22c55e" : "#52525b"}
+            trackColor={{ false: "#242c24", true: "#22c55e50" }}
+            thumbColor={isTaxDeductible ? "#22c55e" : "#5a6d5a"}
           />
         </View>
       </View>
 
       <View className="mb-4">
-        <Pressable onPress={() => setShowTagPicker(!showTagPicker)} className="flex-row items-center justify-between rounded-xl border border-surface-border bg-surface-raised px-4 py-3">
-          <Text className="text-sm text-zinc-400">Tags</Text>
-          <Text className="text-sm text-white">{tags.length > 0 ? tags.join(", ") : "Tap to add"}</Text>
+        <Pressable onPress={() => setShowTagPicker(!showTagPicker)} className="flex-row items-center justify-between rounded-xl border border-surface-border bg-surface-container px-4 py-3">
+          <Text className="text-sm text-muted">Tags</Text>
+          <Text className="text-sm text-surface-text">{tags.length > 0 ? tags.join(", ") : "Tap to add"}</Text>
         </Pressable>
         {showTagPicker && (
           <View className="mt-2 flex-row flex-wrap gap-1.5">
@@ -123,9 +123,9 @@ export function ReceiptForm({ receipt, onSave, onDelete }: ReceiptFormProps) {
               <Pressable
                 key={tag}
                 onPress={() => toggleTag(tag)}
-                className={`rounded-full border px-3 py-1.5 ${tags.includes(tag) ? "border-brand-500 bg-brand-500/15" : "border-surface-border bg-surface-raised"}`}
+                className={`rounded-full border px-3 py-1.5 ${tags.includes(tag) ? "border-brand bg-brand/15" : "border-surface-border bg-surface-container"}`}
               >
-                <Text className={`text-xs ${tags.includes(tag) ? "text-brand-500 font-semibold" : "text-zinc-400"}`}>
+                <Text className={`text-xs ${tags.includes(tag) ? "text-brand font-semibold" : "text-muted"}`}>
                   {tag}
                 </Text>
               </Pressable>
@@ -134,7 +134,7 @@ export function ReceiptForm({ receipt, onSave, onDelete }: ReceiptFormProps) {
         )}
       </View>
 
-      <Text className="mb-4 text-xs text-zinc-500">Added on {formatDate(receipt.createdAt)}</Text>
+      <Text className="mb-4 text-xs text-muted">Added on {formatDate(receipt.createdAt)}</Text>
       <Button label="Save changes" onPress={handleSave} disabled={!hasChanges} />
       {onDelete && (
         <View className="mt-3">

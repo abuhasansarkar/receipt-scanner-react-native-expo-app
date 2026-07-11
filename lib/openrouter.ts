@@ -42,6 +42,7 @@ const SYSTEM_PROMPT = `You are a receipt OCR assistant. Extract structured data 
   "category": "food" | "travel" | "software" | "office" | "utilities" | "entertainment" | "health" | "other",
   "items": [{ "name": "item", "price": 5.00, "quantity": 1 }],
   "receiptNumber": "optional receipt number or null",
+  "paymentMethod": "payment method if visible (e.g. 'Visa ending in 1234') or null",
   "confidence": {
     "merchant": 0.95,
     "total": 0.95,
@@ -171,6 +172,7 @@ function parseScanResult(raw: string): ScanResult {
     category: String(parsed.category ?? "other"),
     items,
     receiptNumber: parsed.receiptNumber ? String(parsed.receiptNumber) : undefined,
+    paymentMethod: parsed.paymentMethod ? String(parsed.paymentMethod) : undefined,
     confidence: {
       merchant: Number(confidenceRaw?.merchant) || 0.5,
       total: Number(confidenceRaw?.total) || 0.5,
