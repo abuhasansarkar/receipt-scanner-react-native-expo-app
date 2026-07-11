@@ -22,8 +22,8 @@ function RootLayoutInner() {
             headerShown: true,
             title: "Receipt",
             presentation: "modal",
-            headerStyle: { backgroundColor: "#0b0b0f" },
-            headerTintColor: "#ffffff",
+            headerStyle: { backgroundColor: "#0e150e" },
+            headerTintColor: "#dce5d9",
           }}
         />
         <Stack.Screen name="(auth)" options={{ presentation: "modal" }} />

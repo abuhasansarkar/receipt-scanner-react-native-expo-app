@@ -1,41 +1,60 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useMemo } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { CategoryBreakdownBar } from "@/components/charts/CategoryBreakdownBar";
-import { ExpenseChart } from "@/components/charts/ExpenseChart";
-import { Card } from "@/components/ui/Card";
-import { useMonthlyInsights, useSpendingTrends, useWeeklyInsights } from "@/features/insights/hooks";
-import { useReceipts, useTaxDeductibleTotal } from "@/features/receipts/hooks";
-import { formatCurrency, formatCurrencyShort } from "@/lib/utils";
+import { Sparkline } from "@/components/charts/Sparkline";
+import { useWeeklyInsights, useMonthlyInsights } from "@/features/insights/hooks";
+import { useReceipts } from "@/features/receipts/hooks";
+import { getCategoryMeta } from "@/lib/constants";
+import { formatCurrency } from "@/lib/utils";
+
+type TimePeriod = "week" | "month";
 
 export default function InsightsScreen() {
   const receipts = useReceipts();
   const weekly = useWeeklyInsights();
   const monthly = useMonthlyInsights();
-  const trends = useSpendingTrends();
-  const taxTotal = useTaxDeductibleTotal();
+  const [period, setPeriod] = useState<TimePeriod>("week");
 
-  const trendChartData = useMemo(
-    () => trends.map((t) => ({ label: t.month, value: t.total, color: "#4be277" })),
-    [trends]
-  );
+  const insights = period === "week" ? weekly : monthly;
+  const total = period === "week" ? weekly.weekTotal : monthly.monthTotal;
+  const previousTotal = period === "week" ? weekly.previousWeekTotal : monthly.previousMonthTotal;
+  const changePercent = previousTotal > 0
+    ? Math.round(((total - previousTotal) / previousTotal) * 100)
+    : 0;
+  const isPositive = changePercent >= 0;
+
+  const sparkData = useMemo(() => {
+    const days = ["M", "T", "W", "T", "F", "S", "S"];
+    const now = new Date();
+    const dayOfWeek = (now.getDay() + 6) % 7;
+    return days.slice(0, dayOfWeek + 1).map((_, i) => {
+      const dayReceipts = receipts.filter((r) => {
+        const d = new Date(r.date);
+        const diff = Math.floor((now.getTime() - d.getTime()) / 86_400_000);
+        return diff === dayOfWeek - i;
+      });
+      return dayReceipts.reduce((sum, r) => sum + r.total, 0);
+    });
+  }, [receipts]);
+
+  const topCategories = useMemo(() => {
+    return insights.categoryBreakdown.slice(0, 3);
+  }, [insights]);
 
   if (receipts.length === 0) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#0e150e" }} edges={["top"]}>
-        <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 8 }}>
-          <Text style={{ fontSize: 28, fontWeight: "700", color: "#dce5d9", lineHeight: 34, letterSpacing: -0.28, marginBottom: 24 }}>
-            AI Insights
-          </Text>
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "#1a221a", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+      <SafeAreaView className="flex-1 bg-surface-base" edges={["top"]}>
+        <View className="flex-1 px-5 pt-2">
+          <Text className="text-headline-lg mb-6">Insights</Text>
+          <View className="flex-1 items-center justify-center">
+            <View className="w-20 h-20 items-center justify-center rounded-full bg-surface-container mb-4">
               <Ionicons name="bar-chart-outline" size={36} color="#3d4a3d" />
             </View>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "#dce5d9", marginBottom: 8 }}>No insights yet</Text>
-            <Text style={{ fontSize: 14, color: "#869585", textAlign: "center", lineHeight: 20 }}>
+            <Text className="text-lg font-semibold text-surface-text mb-2">No insights yet</Text>
+            <Text className="text-center text-sm leading-5 text-muted">
               Scan your first receipt to see spending patterns and AI-powered insights.
             </Text>
           </View>
@@ -45,134 +64,130 @@ export default function InsightsScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#0e150e" }} edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-surface-base" edges={["top"]}>
       <ScrollView
-        style={{ flex: 1 }}
+        className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8, marginBottom: 24 }}>
-          <Text style={{ fontSize: 28, fontWeight: "700", color: "#dce5d9", lineHeight: 34, letterSpacing: -0.28 }}>
-            AI Insights
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#4be27715", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: "#4be27730" }}>
-            <Ionicons name="sparkles" size={14} color="#4be277" />
-            <Text style={{ fontSize: 12, fontWeight: "600", color: "#4be277" }}>AI Powered</Text>
+        <View className="flex-row items-center justify-between mt-2 mb-5">
+          <View className="flex-row items-center gap-3">
+            <View className="header-avatar">
+              <Text className="text-sm font-semibold text-brand">U</Text>
+            </View>
+            <Text className="text-lg font-bold tracking-tight text-brand">
+              AuraReceipt
+            </Text>
+          </View>
+          <View className="icon-40">
+            <Ionicons name="notifications-outline" size={20} color="#dce5d9" />
           </View>
         </View>
 
-        {/* Hero Stats */}
-        <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
-          <LinearGradient
-            colors={["#1a221a", "#161d16"]}
-            style={{ flex: 1, borderRadius: 24, borderWidth: 1, borderColor: "#3d4a3d", padding: 16 }}
-          >
-            <Text style={{ fontSize: 11, color: "#869585", fontWeight: "600", letterSpacing: 0.5, textTransform: "uppercase" }}>This week</Text>
-            <Text style={{ fontSize: 20, fontWeight: "600", color: "#dce5d9", lineHeight: 28, marginTop: 4 }}>
-              {formatCurrencyShort(weekly.weekTotal)}
+        {/* Title + Period Selector */}
+        <View className="flex-row items-center justify-between mb-5">
+          <Text className="text-headline-lg">Insights</Text>
+          <Pressable className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5">
+            <Text className="text-xs font-semibold text-on-surface-variant">
+              {period === "week" ? "This Week" : "This Month"}
             </Text>
-            <Text style={{ fontSize: 12, color: "#869585", marginTop: 2 }}>
-              {formatCurrency(weekly.previousWeekTotal)} last week
-            </Text>
-          </LinearGradient>
-          <LinearGradient
-            colors={["#1a221a", "#161d16"]}
-            style={{ flex: 1, borderRadius: 24, borderWidth: 1, borderColor: "#3d4a3d", padding: 16 }}
-          >
-            <Text style={{ fontSize: 11, color: "#869585", fontWeight: "600", letterSpacing: 0.5, textTransform: "uppercase" }}>This month</Text>
-            <Text style={{ fontSize: 20, fontWeight: "600", color: "#dce5d9", lineHeight: 28, marginTop: 4 }}>
-              {formatCurrencyShort(monthly.monthTotal)}
-            </Text>
-            {monthly.changeVsLastMonth !== 0 && (
-              <Text style={{ fontSize: 12, color: monthly.changeVsLastMonth > 0 ? "#f59e0b" : "#4be277", marginTop: 2 }}>
-                {monthly.changeVsLastMonth >= 0 ? "▲" : "▼"} {Math.abs(Math.round(monthly.changeVsLastMonth * 100))}% vs last month
-              </Text>
-            )}
-          </LinearGradient>
+            <Ionicons name="chevron-down" size={14} color="#869585" />
+          </Pressable>
         </View>
 
-        {/* Projection */}
-        {monthly.projectedTotal > monthly.monthTotal && (
-          <View style={{ backgroundColor: "#4be27710", borderRadius: 16, borderWidth: 1, borderColor: "#4be27730", padding: 14, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Ionicons name="trending-up-outline" size={18} color="#4be277" />
-            <Text style={{ flex: 1, fontSize: 14, color: "#dce5d9", lineHeight: 20 }}>
-              On track to spend{" "}
-              <Text style={{ fontWeight: "700", color: "#4be277" }}>{formatCurrency(monthly.projectedTotal)}</Text>
-              {" "}this month
-            </Text>
-          </View>
-        )}
-
-        {/* AI Alerts */}
-        {weekly.alerts.length > 0 && (
-          <View style={{ backgroundColor: "#0566d915", borderRadius: 20, borderWidth: 1, borderColor: "#0566d930", padding: 16, marginBottom: 16 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#0566d930", alignItems: "center", justifyContent: "center" }}>
-                <Ionicons name="bulb" size={14} color="#adc6ff" />
-              </View>
-              <Text style={{ fontSize: 12, fontWeight: "600", color: "#adc6ff", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                AI Insights
+        {/* Spending Trend Card */}
+        <View className="card-dark mb-4 p-5">
+          <View className="mb-2 flex-row items-center justify-between">
+            <Text className="text-sm font-medium text-on-surface-variant">Spending Trend</Text>
+            <View className="trend-up-badge">
+              <Ionicons
+                name={isPositive ? "trending-up" : "trending-down"}
+                size={12}
+                color="#4be277"
+              />
+              <Text className="text-xs font-semibold text-brand">
+                {isPositive ? "+" : ""}{changePercent}%
               </Text>
             </View>
-            {weekly.alerts.map((alert, i) => (
-              <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, marginBottom: i < weekly.alerts.length - 1 ? 8 : 0 }}>
-                <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: "#adc6ff", marginTop: 7 }} />
-                <Text style={{ flex: 1, fontSize: 13, color: "#adc6ff", lineHeight: 20 }}>{alert}</Text>
-              </View>
+          </View>
+          <Text className="mb-3 text-[28px] font-bold text-brand leading-8">
+            {isPositive ? "+" : ""}{formatCurrency(total)}
+          </Text>
+          <Sparkline data={sparkData} height={120} strokeWidth={2.5} />
+          <View className="mt-2 flex-row justify-between">
+            {["M", "T", "W", "T", "F", "S", "S"].slice(0, sparkData.length).map((day, i) => (
+              <Text key={i} className="flex-1 text-center text-[10px] text-muted">
+                {day}
+              </Text>
             ))}
           </View>
-        )}
+        </View>
 
-        {/* Category Breakdown */}
-        <Card style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", color: "#dce5d9", lineHeight: 24, marginBottom: 16 }}>
-            Spending by category
-          </Text>
-          <CategoryBreakdownBar data={weekly.categoryBreakdown} />
-        </Card>
-
-        {/* Monthly Trend Chart */}
-        {trendChartData.length > 1 && (
-          <Card style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 16, fontWeight: "600", color: "#dce5d9", lineHeight: 24, marginBottom: 16 }}>
-              Monthly spending trend
-            </Text>
-            <ExpenseChart data={trendChartData} height={140} />
-          </Card>
-        )}
-
-        {/* Monthly Summary */}
-        <Card style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", color: "#dce5d9", lineHeight: 24, marginBottom: 16 }}>
-            Monthly summary
-          </Text>
-          <View style={{ gap: 12 }}>
-            <SummaryRow label="Total spent" value={formatCurrency(monthly.monthTotal)} />
-            <SummaryRow label="Daily average" value={formatCurrency(monthly.dailyAverage)} />
-            <SummaryRow label="Projected total" value={formatCurrency(monthly.projectedTotal)} />
-            <SummaryRow label="Top category" value={weekly.topCategory ?? "N/A"} />
-            {taxTotal > 0 && (
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#4be27710", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Ionicons name="receipt-outline" size={14} color="#4be277" />
-                  <Text style={{ fontSize: 14, color: "#4be277", fontWeight: "500" }}>Tax deductible</Text>
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "700", color: "#4be277" }}>{formatCurrency(taxTotal)}</Text>
-              </View>
-            )}
+        {/* Top Categories Card */}
+        <View className="card-dark mb-4 p-5">
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-body font-semibold">Top Categories</Text>
+            <Pressable>
+              <Text className="text-sm font-semibold text-brand">See All</Text>
+            </Pressable>
           </View>
-        </Card>
+          {topCategories.length === 0 ? (
+            <Text className="text-sm text-muted">No categories yet</Text>
+          ) : (
+            <View className="gap-4">
+              {topCategories.map((entry) => {
+                const meta = getCategoryMeta(entry.category);
+                return (
+                  <View key={entry.category}>
+                    <View className="mb-2 flex-row items-center justify-between">
+                      <Text className="text-sm font-medium text-surface-text">{meta.label.split(" ")[0]}</Text>
+                      <View className="flex-row items-center gap-2">
+                        <Text className="text-sm font-semibold text-surface-text">
+                          {formatCurrency(entry.total)}
+                        </Text>
+                        <Text className="text-xs text-muted w-8 text-right">
+                          {Math.round(entry.percentage * 100)}%
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="progress-bar">
+                      <View
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.max(entry.percentage * 100, 4)}%`,
+                          backgroundColor: meta.color,
+                        }}
+                      />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
+        {/* AI Alert Card */}
+        {weekly.alerts.length > 0 && (
+          <View className="ai-alert-card mb-4">
+            <View className="mb-3 flex-row items-center gap-3">
+              <LinearGradient
+                colors={["rgba(173,198,255,0.15)", "rgba(209,189,255,0.15)"]}
+                className="w-10 h-10 items-center justify-center rounded-full"
+              >
+                <Ionicons name="sparkles" size={20} color="#adc6ff" />
+              </LinearGradient>
+              <Text className="text-body font-semibold text-surface-text">AI Alert</Text>
+            </View>
+            <Text className="mb-4 text-sm leading-5 text-on-surface-variant">
+              {weekly.alerts[0]}
+            </Text>
+            <Pressable className="self-start rounded-full border border-surface-border px-4 py-2">
+              <Text className="text-xs font-semibold text-surface-text">Review</Text>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-      <Text style={{ fontSize: 14, color: "#869585" }}>{label}</Text>
-      <Text style={{ fontSize: 14, fontWeight: "500", color: "#dce5d9" }}>{value}</Text>
-    </View>
   );
 }

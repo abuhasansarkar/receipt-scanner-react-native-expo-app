@@ -196,6 +196,7 @@ function mockExtractReceiptData(): ScanResult {
     category: selected.category,
     items: selected.items,
     receiptNumber: `RCP-${Date.now().toString(36).toUpperCase()}`,
+    paymentMethod: "Visa ending in 4242",
     confidence: {
       merchant: 0.85,
       total: 0.88,

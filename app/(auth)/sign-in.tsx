@@ -117,16 +117,16 @@ export default function SignInScreen() {
 
   if (showCodeInput) {
     return (
-      <SafeAreaView className="flex-1 bg-surface">
+      <SafeAreaView className="flex-1 bg-surface-base">
         <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
           <View className="flex-1 justify-center px-8">
             <View className="mb-8 items-center">
-              <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/15">
-                <Ionicons name="mail-outline" size={32} color="#22c55e" />
+              <View className="mb-4 w-16 h-16 items-center justify-center rounded-2xl bg-brand/15">
+                <Ionicons name="mail-outline" size={32} color="#4be277" />
               </View>
-              <Text className="text-2xl font-bold text-white">Check your email</Text>
-              <Text className="mt-1 text-center text-sm text-zinc-500">
+              <Text className="text-2xl font-bold text-surface-text">Check your email</Text>
+              <Text className="mt-1 text-center text-sm text-muted">
                 We sent a verification code to{"\n"}{email}
               </Text>
             </View>
@@ -134,9 +134,9 @@ export default function SignInScreen() {
               value={code}
               onChangeText={setCode}
               placeholder="Enter verification code"
-              placeholderTextColor="#71717a"
+              placeholderTextColor="#5a6d5a"
               keyboardType="number-pad"
-              className="mb-6 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 text-center text-2xl tracking-widest text-white"
+              className="mb-6 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-center text-2xl tracking-widest text-surface-text"
               maxLength={6}
             />
             {error && (
@@ -144,7 +144,7 @@ export default function SignInScreen() {
             )}
             <Button label="Verify" onPress={handleVerifyCode} disabled={code.trim().length < 4 || busy} loading={busy} />
             <Pressable onPress={() => { setShowCodeInput(false); setCode(""); setError(null); }} className="mt-4 items-center">
-              <Text className="text-sm text-zinc-500">Use a different email</Text>
+              <Text className="text-sm text-muted">Use a different email</Text>
             </Pressable>
           </View>
         </KeyboardAvoidingView>
@@ -153,25 +153,24 @@ export default function SignInScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-surface">
+    <SafeAreaView className="flex-1 bg-surface-base">
       <View nativeID="clerk-captcha" className="absolute h-0 w-0" />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
         <View className="flex-1 justify-center px-8">
           <View className="mb-8 items-center">
-<View className="mb-4 items-center justify-center rounded-2xl">
-
-  <Image source={require("@/assets/images/receipt.png")} className="h-60 w-60" />
-</View>
-            <Text className="text-2xl font-bold text-white">Welcome back</Text>
-            <Text className="mt-1 text-sm text-zinc-500">Sign in to your account</Text>
+            <View className="mb-4 items-center justify-center rounded-2xl">
+              <Image source={require("@/assets/images/receipt.png")} className="h-60 w-60" />
+            </View>
+            <Text className="text-2xl font-bold text-surface-text">Welcome back</Text>
+            <Text className="mt-1 text-sm text-muted">Sign in to your account</Text>
           </View>
 
           <TextInput
             value={email}
             onChangeText={setEmail}
             placeholder="Email address"
-            placeholderTextColor="#71717a"
-            className="mb-4 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 text-white"
+            placeholderTextColor="#5a6d5a"
+            className="mb-4 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-surface-text"
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -180,13 +179,13 @@ export default function SignInScreen() {
             <Text className="-mt-3 mb-4 text-xs text-red-400">{error}</Text>
           )}
 
-          <Button className="text-white" label="Send verification code" onPress={handleSendCode} disabled={!email.trim() || busy} loading={busy} />
+          <Button label="Send verification code" onPress={handleSendCode} disabled={!email.trim() || busy} loading={busy} />
 
           {isClerkConfigured && (
             <>
               <View className="my-6 flex-row items-center gap-3">
                 <View className="flex-1 h-px bg-surface-border" />
-                <Text className="text-xs text-zinc-500">Or continue with</Text>
+                <Text className="text-xs text-muted">Or continue with</Text>
                 <View className="flex-1 h-px bg-surface-border" />
               </View>
 
@@ -194,28 +193,28 @@ export default function SignInScreen() {
                 <Pressable
                   onPress={() => handleSocialSignIn("google")}
                   disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 active:opacity-70"
+                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
                 >
                   {socialPending === "google" ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
                     <>
-                      <Ionicons name="logo-google" size={18} color="#ffffff" />
-                      <Text className="text-sm font-medium text-white">Google</Text>
+                      <Ionicons name="logo-google" size={18} color="#dce5d9" />
+                      <Text className="text-sm font-medium text-surface-text">Google</Text>
                     </>
                   )}
                 </Pressable>
                 <Pressable
                   onPress={() => handleSocialSignIn("apple")}
                   disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 active:opacity-70"
+                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
                 >
                   {socialPending === "apple" ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
                     <>
-                      <Ionicons name="logo-apple" size={18} color="#ffffff" />
-                      <Text className="text-sm font-medium text-white">Apple</Text>
+                      <Ionicons name="logo-apple" size={18} color="#dce5d9" />
+                      <Text className="text-sm font-medium text-surface-text">Apple</Text>
                     </>
                   )}
                 </Pressable>
@@ -224,13 +223,13 @@ export default function SignInScreen() {
           )}
 
           <View className="mt-6 flex-row justify-center gap-1">
-            <Text className="text-sm text-zinc-500">No account?</Text>
+            <Text className="text-sm text-muted">No account?</Text>
             <Pressable onPress={() => router.push("/(auth)/sign-up" as Href)}>
-              <Text className="text-sm font-semibold text-brand-500">Sign up</Text>
+              <Text className="text-sm font-semibold text-brand">Sign up</Text>
             </Pressable>
           </View>
           <Pressable onPress={() => router.replace("/(tabs)")} className="mt-4 items-center">
-            <Text className="text-sm text-zinc-500">Continue offline</Text>
+            <Text className="text-sm text-muted">Continue offline</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

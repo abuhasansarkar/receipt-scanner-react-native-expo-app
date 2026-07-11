@@ -19,6 +19,7 @@ export interface ScanResult {
   category: string;
   items: ScanResultItem[];
   receiptNumber?: string;
+  paymentMethod?: string;
   confidence: {
     merchant: number;
     total: number;

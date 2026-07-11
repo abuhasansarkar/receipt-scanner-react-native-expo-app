@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View, Animated } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ScanOverlay } from "@/components/scanner/ScanOverlay";
@@ -18,6 +18,10 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const { isProcessing, error, processImage, pickFromLibrary, pickPDF } = useScanner();
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [torchEnabled, setTorchEnabled] = useState(false);
+  const [autoCrop, setAutoCrop] = useState(true);
 
   const handleScanOutcome = (outcome: ScanOutcome | null) => {
     if (!outcome) return;
@@ -38,6 +42,7 @@ export default function ScanScreen() {
       confidence: result.confidence,
       receiptNumber: result.receiptNumber,
       imageUri,
+      paymentMethod: result.paymentMethod,
       status: lowConfidence ? "needs_review" : "verified",
       source,
     });
@@ -66,32 +71,34 @@ export default function ScanScreen() {
   };
 
   if (!permission) {
-    return <View style={{ flex: 1, backgroundColor: "#0e150e" }} />;
+    return <View className="flex-1 bg-surface-base" />;
   }
 
   if (!permission.granted) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#0e150e", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
-        <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "#1a221a", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+      <SafeAreaView className="flex-1 items-center justify-center bg-surface-base px-8">
+        <View className="w-20 h-20 items-center justify-center rounded-full bg-surface-container mb-5">
           <Ionicons name="camera-outline" size={36} color="#4be277" />
         </View>
-        <Text style={{ fontSize: 20, fontWeight: "600", color: "#dce5d9", textAlign: "center", marginBottom: 8 }}>
+        <Text className="text-center text-xl font-semibold text-surface-text mb-2">
           Camera access needed
         </Text>
-        <Text style={{ fontSize: 14, color: "#869585", textAlign: "center", marginBottom: 32, lineHeight: 20 }}>
+        <Text className="text-center text-sm leading-5 text-muted mb-8">
           ReceiptBrain needs your camera to scan receipts instantly with AI.
         </Text>
         <Pressable
           onPress={requestPermission}
-          style={{ borderRadius: 16, overflow: "hidden", width: "100%" }}
+          className="w-full overflow-hidden rounded-2xl"
         >
           <LinearGradient
             colors={["#4be277", "#0566d9", "#b89cff"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ paddingVertical: 16, alignItems: "center" }}
+            className="items-center py-4"
           >
-            <Text style={{ fontSize: 16, fontWeight: "600", color: "#003915" }}>Grant permission</Text>
+            <Text className="text-base font-semibold text-on-primary">
+              Grant permission
+            </Text>
           </LinearGradient>
         </Pressable>
       </SafeAreaView>
@@ -101,79 +108,164 @@ export default function ScanScreen() {
   const busy = isProcessing || isCapturing;
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back">
+    <View className="flex-1 bg-black">
+      <CameraView
+        ref={cameraRef}
+        style={{ flex: 1 }}
+        facing="back"
+        mode="picture"
+        ratio="4:3"
+        enableTorch={torchEnabled}
+        onCameraReady={() => setIsCameraReady(true)}
+        onMountError={(e) => setCameraError(e.message)}
+      />
+
+      {!isCameraReady && !cameraError && (
+        <View className="absolute inset-0 items-center justify-center bg-black">
+          <ActivityIndicator size="large" color="#4be277" />
+          <Text className="mt-3 text-sm font-medium text-white/70">
+            Starting camera...
+          </Text>
+        </View>
+      )}
+
+      {cameraError && (
+        <View className="absolute inset-0 items-center justify-center bg-black px-8">
+          <View className="w-20 h-20 items-center justify-center rounded-full bg-surface-container mb-5">
+            <Ionicons name="camera-outline" size={36} color="#ef4444" />
+          </View>
+          <Text className="text-center text-xl font-semibold text-white mb-2">
+            Camera error
+          </Text>
+          <Text className="text-center text-sm leading-5 text-white/60 mb-8">
+            {cameraError}
+          </Text>
+          <Pressable
+            onPress={() => router.back()}
+            className="overflow-hidden rounded-2xl border border-white/20 px-8 py-3"
+          >
+            <Text className="text-base font-semibold text-white">Go back</Text>
+          </Pressable>
+        </View>
+      )}
+
+      <View pointerEvents="none" className="absolute inset-0">
         <ScanOverlay isProcessing={busy} />
-      </CameraView>
+      </View>
 
       {/* Error */}
       {error && (
-        <View style={{ position: "absolute", left: 20, right: 20, top: 60, backgroundColor: "#93000a", borderRadius: 12, padding: 14 }}>
-          <Text style={{ textAlign: "center", fontSize: 14, color: "#ffdad6" }}>{error}</Text>
+        <View className="absolute left-5 right-5 top-16 rounded-xl border border-red-500/30 bg-red-900/80 p-3.5">
+          <Text className="text-center text-sm text-red-100">{error}</Text>
         </View>
       )}
 
       {/* Processing overlay */}
       {busy && (
-        <View style={{ position: "absolute", inset: 0, backgroundColor: "#00000080", alignItems: "center", justifyContent: "center" }}>
-          <View style={{ backgroundColor: "#1a221a", borderRadius: 20, padding: 24, alignItems: "center", borderWidth: 1, borderColor: "#3d4a3d" }}>
+        <View className="absolute inset-0 items-center justify-center bg-black/50">
+          <View className="items-center rounded-2xl border border-surface-border bg-surface-container p-6">
             <ActivityIndicator size="large" color="#4be277" />
-            <Text style={{ color: "#dce5d9", fontSize: 14, fontWeight: "500", marginTop: 12 }}>
+            <Text className="mt-3 text-sm font-medium text-surface-text">
               Analyzing receipt...
             </Text>
-            <Text style={{ color: "#869585", fontSize: 12, marginTop: 4 }}>AI is extracting data</Text>
+            <Text className="mt-1 text-xs text-muted">AI is extracting data</Text>
           </View>
         </View>
       )}
 
+      {/* Top Controls */}
+      <SafeAreaView edges={["top"]} className="absolute top-0 left-0 right-0">
+        <View className="flex-row items-center justify-between px-5 pt-2">
+          {/* Close Button */}
+          <Pressable
+            onPress={() => router.back()}
+            className="icon-btn-circle"
+          >
+            <Ionicons name="close" size={22} color="#ffffff" />
+          </Pressable>
+
+          {/* Torch Toggle */}
+          <Pressable
+            onPress={() => setTorchEnabled(!torchEnabled)}
+            className="items-center justify-center rounded-full"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: torchEnabled ? "#4be277" : "rgba(0,0,0,0.45)",
+            }}
+          >
+            <Ionicons
+              name={torchEnabled ? "flash" : "flash-outline"}
+              size={20}
+              color={torchEnabled ? "#003915" : "#ffffff"}
+            />
+          </Pressable>
+        </View>
+      </SafeAreaView>
+
       {/* Bottom Controls */}
-      <SafeAreaView edges={["bottom"]} style={{ position: "absolute", bottom: 0, width: "100%" }}>
-        {/* Hint */}
-        <View style={{ alignItems: "center", marginBottom: 16 }}>
-          <View style={{ backgroundColor: "#00000080", borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6 }}>
-            <Text style={{ fontSize: 12, color: "#ffffff99", fontWeight: "500" }}>
+      <SafeAreaView edges={["bottom"]} className="absolute bottom-0 left-0 right-0">
+        {/* Hint Text */}
+        <View className="items-center mb-4">
+          <View className="rounded-full bg-black/60 px-4 py-1.5">
+            <Text className="text-xs font-medium text-white/70">
               Align receipt within the frame
             </Text>
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 40, paddingBottom: 24 }}>
+        {/* Control Row */}
+        <View className="flex-row items-center justify-between px-10 pb-6">
           {/* Gallery */}
           <Pressable
             onPress={handleImport}
             disabled={busy}
-            style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#ffffff18", borderWidth: 1, borderColor: "#ffffff30", alignItems: "center", justifyContent: "center" }}
+            className="scan-btn-circle"
           >
-            <Ionicons name="images-outline" size={24} color="white" />
+            <Ionicons name="images-outline" size={22} color="#ffffff" />
           </Pressable>
 
           {/* Capture Button */}
           <Pressable
             onPress={handleCapture}
-            disabled={busy}
-            style={{ width: 80, height: 80, borderRadius: 40, padding: 4, borderWidth: 3, borderColor: "#ffffff40", alignItems: "center", justifyContent: "center" }}
+            disabled={busy || !isCameraReady}
+            className="items-center justify-center"
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              padding: 4,
+              borderWidth: 3,
+              borderColor: isCameraReady
+                ? "rgba(255,255,255,0.35)"
+                : "rgba(255,255,255,0.12)",
+            }}
           >
-            <LinearGradient
-              colors={["#4be277", "#0566d9"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ width: 66, height: 66, borderRadius: 33, alignItems: "center", justifyContent: "center" }}
+            <View
+              className="items-center justify-center"
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: busy
+                  ? "rgba(255,255,255,0.3)"
+                  : isCameraReady
+                    ? "#ffffff"
+                    : "rgba(255,255,255,0.15)",
+              }}
             >
-              {busy ? (
-                <ActivityIndicator color="#003915" />
-              ) : (
-                <Ionicons name="camera" size={28} color="#003915" />
-              )}
-            </LinearGradient>
+              {busy ? <ActivityIndicator color="#003915" /> : null}
+            </View>
           </Pressable>
 
-          {/* PDF */}
+          {/* PDF Import */}
           <Pressable
             onPress={handleImportPDF}
             disabled={busy}
-            style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#ffffff18", borderWidth: 1, borderColor: "#ffffff30", alignItems: "center", justifyContent: "center" }}
+            className="scan-btn-circle"
           >
-            <Ionicons name="document-text-outline" size={24} color="white" />
+            <Ionicons name="document-outline" size={22} color="#ffffff" />
           </Pressable>
         </View>
       </SafeAreaView>

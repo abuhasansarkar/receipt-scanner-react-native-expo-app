@@ -19,11 +19,11 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             key={category.id}
             onPress={() => onChange(category.id)}
             className={`mx-1 flex-row items-center gap-1.5 rounded-full border px-3.5 py-2 ${
-              selected ? "border-brand-500 bg-brand-500/15" : "border-surface-border bg-surface-raised"
+              selected ? "border-brand bg-brand/15" : "border-surface-border bg-surface-container"
             }`}
           >
-            <Ionicons name={category.icon} size={14} color={selected ? "#22c55e" : "#a1a1aa"} />
-            <Text className={`text-xs font-medium ${selected ? "text-brand-500" : "text-zinc-400"}`}>
+            <Ionicons name={category.icon} size={14} color={selected ? "#4be277" : "#869585"} />
+            <Text className={`text-xs font-medium ${selected ? "text-brand" : "text-muted"}`}>
               {category.label}
             </Text>
           </Pressable>

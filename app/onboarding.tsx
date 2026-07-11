@@ -50,71 +50,56 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#0e150e" }}>
-      <View style={{ flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: 20, paddingTop: 8 }}>
-        <Pressable onPress={handleSkip} style={{ paddingHorizontal: 12, paddingVertical: 8 }}>
-          <Text style={{ fontSize: 15, color: "#869585", fontWeight: "500" }}>Skip</Text>
+    <SafeAreaView className="flex-1 bg-surface-base">
+      <View className="flex-row justify-end px-5 pt-2">
+        <Pressable onPress={handleSkip} className="px-3 py-2">
+          <Text className="text-[15px] text-muted font-medium">Skip</Text>
         </Pressable>
       </View>
 
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
-        <View style={{ width: 160, height: 160, borderRadius: 80, overflow: "hidden", marginBottom: 40 }}>
+      <View className="flex-1 justify-center items-center px-8">
+        <View className="w-40 h-40 rounded-full overflow-hidden mb-10">
           <LinearGradient
             colors={["#4be277", "#0566d9", "#b89cff"]}
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+            className="flex-1 items-center justify-center"
           >
             <Ionicons name={slide.icon as any} size={64} color="#003915" />
-            <Image source={require("@/assets/images/receipt.png")} style={{ width: 32, height: 32, position: "absolute", bottom: 20, right: 20 }} />
+            <Image
+              source={require("@/assets/images/receipt.png")}
+              className="w-8 h-8 absolute bottom-5 right-5"
+            />
           </LinearGradient>
         </View>
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: "700",
-            color: "#dce5d9",
-            textAlign: "center",
-            lineHeight: 34,
-            marginBottom: 12,
-          }}
-        >
+        <Text className="text-[28px] font-bold text-surface-text text-center leading-[34px] mb-3">
           {slide.title}
         </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: "#869585",
-            textAlign: "center",
-            lineHeight: 22,
-            paddingHorizontal: 8,
-          }}
-        >
+        <Text className="text-[15px] text-muted text-center leading-[22px] px-2">
           {slide.description}
         </Text>
       </View>
 
-      <View style={{ paddingHorizontal: 20, paddingBottom: 32, gap: 24 }}>
-        <View style={{ flexDirection: "row", justifyContent: "center", gap: 8 }}>
+      <View className="px-5 pb-8 gap-6">
+        <View className="flex-row justify-center gap-2">
           {slides.map((_, i) => (
             <View
               key={i}
+              className="h-2 rounded-full"
               style={{
                 width: i === current ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
                 backgroundColor: i === current ? "#4be277" : "#3d4a3d",
               }}
             />
           ))}
         </View>
 
-        <Pressable onPress={handleNext} style={{ borderRadius: 16, overflow: "hidden" }}>
+        <Pressable onPress={handleNext} className="overflow-hidden rounded-2xl">
           <LinearGradient
             colors={["#4be277", "#0566d9", "#b89cff"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ alignItems: "center", justifyContent: "center", paddingVertical: 16 }}
+            className="items-center justify-center py-4"
           >
-            <Text style={{ fontSize: 17, fontWeight: "600", color: "#003915" }}>
+            <Text className="text-[17px] font-semibold text-on-primary">
               {isLast ? "Get Started" : "Next"}
             </Text>
           </LinearGradient>

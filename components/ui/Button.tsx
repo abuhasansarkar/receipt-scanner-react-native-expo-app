@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, Text, type PressableProps, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, type PressableProps } from "react-native";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -34,12 +34,12 @@ export function Button({
           colors={["#4be277", "#0566d9", "#b89cff"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingHorizontal: 20, paddingVertical: 14 }}
+          className="flex-row items-center justify-center gap-2 px-5 py-3.5"
         >
           {loading ? (
             <ActivityIndicator color="#003915" />
           ) : icon}
-          <Text style={{ fontSize: 16, fontWeight: "600", color: "#003915" }}>{label}</Text>
+          <Text className="text-base font-semibold text-on-primary">{label}</Text>
         </LinearGradient>
       </Pressable>
     );
@@ -78,7 +78,7 @@ export function Button({
       {...props}
     >
       {loading ? <ActivityIndicator color="#4be277" /> : icon}
-      <Text className="text-base font-semibold text-brand-500">{label}</Text>
+      <Text className="text-base font-semibold text-brand">{label}</Text>
     </Pressable>
   );
 }

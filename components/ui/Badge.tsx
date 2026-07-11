@@ -8,9 +8,13 @@ interface BadgeProps {
 export function Badge({ label, color = "#4be277" }: BadgeProps) {
   return (
     <View
-      style={{ backgroundColor: `${color}26`, borderRadius: 9999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" }}
+      className="rounded-full px-2.5 py-1 self-start"
+      style={{ backgroundColor: `${color}26` }}
     >
-      <Text style={{ color, fontSize: 11, fontWeight: "600", letterSpacing: 0.5 }}>
+      <Text
+        className="font-semibold"
+        style={{ color, fontSize: 11, letterSpacing: 0.5 }}
+      >
         {label}
       </Text>
     </View>
