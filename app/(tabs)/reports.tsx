@@ -12,8 +12,43 @@ export default function ReportsScreen() {
   const receipts = useReceipts();
   const taxReport = useTaxReport();
   const taxTotal = useTaxDeductibleTotal();
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const latestReceiptDate = useMemo(() => {
+    if (receipts.length === 0) return null;
+    const dates = receipts.map((r) => new Date(r.date).getTime());
+    return new Date(Math.max(...dates));
+  }, [receipts]);
+
+  const [selectedMonthState, setSelectedMonthState] = useState<Date | null>(null);
+  const [selectedYearState, setSelectedYearState] = useState<number | null>(null);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+
+  const selectedMonth = selectedMonthState ?? latestReceiptDate ?? new Date();
+  const selectedYear = selectedYearState ?? selectedMonth.getFullYear();
+
+  const availableMonths = useMemo(() => {
+    const monthsMap = new Map<string, Date>();
+    for (const r of receipts) {
+      const d = new Date(r.date);
+      const key = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      if (!monthsMap.has(key)) {
+        monthsMap.set(key, startOfMonth(d));
+      }
+    }
+    return Array.from(monthsMap.values()).sort((a, b) => b.getTime() - a.getTime());
+  }, [receipts]);
+
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set<number>();
+    for (const r of receipts) {
+      yearsSet.add(new Date(r.date).getFullYear());
+    }
+    if (yearsSet.size === 0) {
+      yearsSet.add(new Date().getFullYear());
+    }
+    return Array.from(yearsSet).sort((a, b) => b - a);
+  }, [receipts]);
 
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
@@ -119,10 +154,41 @@ export default function ReportsScreen() {
         <View className="card-dark p-5 mb-4">
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="text-body font-semibold">Monthly Report</Text>
-            <Pressable className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5">
-              <Text className="text-xs font-semibold text-on-surface-variant">{monthLabel}</Text>
-              <Ionicons name="chevron-down" size={12} color="#869585" />
-            </Pressable>
+            <View className="relative">
+              <Pressable
+                onPress={() => {
+                  setShowMonthPicker(!showMonthPicker);
+                  setShowYearPicker(false);
+                }}
+                className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5"
+              >
+                <Text className="text-xs font-semibold text-on-surface-variant">{monthLabel}</Text>
+                <Ionicons name="chevron-down" size={12} color="#869585" />
+              </Pressable>
+              {showMonthPicker && availableMonths.length > 0 && (
+                <View className="absolute right-0 top-10 z-50 w-44 rounded-xl border border-surface-border bg-surface-container p-1 shadow-lg">
+                  {availableMonths.map((m) => {
+                    const label = m.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+                    const isSelected = m.getMonth() === selectedMonth.getMonth() && m.getFullYear() === selectedMonth.getFullYear();
+                    return (
+                      <Pressable
+                        key={label}
+                        onPress={() => {
+                          setSelectedMonthState(m);
+                          setSelectedYearState(m.getFullYear());
+                          setShowMonthPicker(false);
+                        }}
+                        className={`rounded-lg px-3 py-2 ${isSelected ? "bg-brand/15" : ""}`}
+                      >
+                        <Text className={`text-xs ${isSelected ? "font-semibold text-brand" : "text-surface-text"}`}>
+                          {label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
           </View>
 
           <Text className="mb-1 text-[28px] font-bold text-surface-text leading-8">
@@ -188,10 +254,39 @@ export default function ReportsScreen() {
         <View className="card-dark p-5 mb-4">
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="text-body font-semibold">Tax Summary</Text>
-            <Pressable className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5">
-              <Text className="text-xs font-semibold text-on-surface-variant">{selectedYear}</Text>
-              <Ionicons name="chevron-down" size={12} color="#869585" />
-            </Pressable>
+            <View className="relative">
+              <Pressable
+                onPress={() => {
+                  setShowYearPicker(!showYearPicker);
+                  setShowMonthPicker(false);
+                }}
+                className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5"
+              >
+                <Text className="text-xs font-semibold text-on-surface-variant">{selectedYear}</Text>
+                <Ionicons name="chevron-down" size={12} color="#869585" />
+              </Pressable>
+              {showYearPicker && availableYears.length > 0 && (
+                <View className="absolute right-0 top-10 z-50 w-28 rounded-xl border border-surface-border bg-surface-container p-1 shadow-lg">
+                  {availableYears.map((y) => {
+                    const isSelected = y === selectedYear;
+                    return (
+                      <Pressable
+                        key={y}
+                        onPress={() => {
+                          setSelectedYearState(y);
+                          setShowYearPicker(false);
+                        }}
+                        className={`rounded-lg px-3 py-2 ${isSelected ? "bg-brand/15" : ""}`}
+                      >
+                        <Text className={`text-xs ${isSelected ? "font-semibold text-brand" : "text-surface-text"}`}>
+                          {y}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
           </View>
 
           <View className="mb-5 flex-row gap-6">

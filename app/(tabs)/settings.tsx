@@ -102,10 +102,14 @@ export default function SettingsScreen() {
           {userEmail ? (
             <Text className="mb-3 text-sm text-muted">{userEmail}</Text>
           ) : null}
-          <View className="pro-badge">
-            <Ionicons name="diamond-outline" size={12} color="#4be277" />
-            <Text className="text-xs font-bold text-brand">PRO PLAN</Text>
-          </View>
+          {user?.plan && user.plan !== "free" && (
+            <View className="pro-badge">
+              <Ionicons name="diamond-outline" size={12} color="#4be277" />
+              <Text className="text-xs font-bold text-brand">
+                {user.plan.toUpperCase()} PLAN
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Account Group */}
