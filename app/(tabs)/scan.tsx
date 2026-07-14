@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
@@ -9,14 +9,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ScanOverlay } from "@/components/scanner/ScanOverlay";
 import { ReceiptService } from "@/features/receipts/service";
 import { useScanner, type ScanOutcome } from "@/features/scanner/hooks";
-import type { Href } from "expo-router";
 import type { ReceiptCategory } from "@/types/receipt";
+import type { Href } from "expo-router";
 
 export default function ScanScreen() {
   const router = useRouter();
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
-  const { isProcessing, error, processImage, pickFromLibrary, pickPDF } = useScanner();
+  const {
+    isProcessing,
+    error,
+    processImage,
+    pickFromLibrary,
+    pickPDF,
+    clearError,
+  } = useScanner();
   const [isCapturing, setIsCapturing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -26,7 +33,8 @@ export default function ScanScreen() {
   const handleScanOutcome = (outcome: ScanOutcome | null) => {
     if (!outcome) return;
     const { imageUri, result, source } = outcome;
-    const lowConfidence = result.confidence.merchant < 0.6 || result.confidence.total < 0.6;
+    const lowConfidence =
+      result.confidence.merchant < 0.6 || result.confidence.total < 0.6;
     const receipt = ReceiptService.create({
       merchant: result.merchant,
       total: result.total,
@@ -155,8 +163,11 @@ export default function ScanScreen() {
 
       {/* Error */}
       {error && (
-        <View className="absolute left-5 right-5 top-16 rounded-xl border border-red-500/30 bg-red-900/80 p-3.5">
-          <Text className="text-center text-sm text-red-100">{error}</Text>
+        <View className="absolute left-5 right-5 top-16 rounded-xl border border-red-500/30 bg-red-900/90 p-3.5 flex-row items-center justify-between z-50">
+          <Text className="flex-1 text-sm text-red-100 mr-2">{error}</Text>
+          <Pressable onPress={clearError} className="p-1">
+            <Ionicons name="close-circle" size={20} color="#fca5a5" />
+          </Pressable>
         </View>
       )}
 
@@ -168,7 +179,9 @@ export default function ScanScreen() {
             <Text className="mt-3 text-sm font-medium text-surface-text">
               Analyzing receipt...
             </Text>
-            <Text className="mt-1 text-xs text-muted">AI is extracting data</Text>
+            <Text className="mt-1 text-xs text-muted">
+              AI is extracting data
+            </Text>
           </View>
         </View>
       )}
@@ -177,10 +190,7 @@ export default function ScanScreen() {
       <SafeAreaView edges={["top"]} className="absolute top-0 left-0 right-0">
         <View className="flex-row items-center justify-between px-5 pt-2">
           {/* Close Button */}
-          <Pressable
-            onPress={() => router.back()}
-            className="icon-btn-circle"
-          >
+          <Pressable onPress={() => router.back()} className="icon-btn-circle">
             <Ionicons name="close" size={22} color="#ffffff" />
           </Pressable>
 
@@ -190,7 +200,7 @@ export default function ScanScreen() {
             className="items-center justify-center rounded-full"
             style={{
               width: 40,
-              height: 40,
+              height: 100,
               borderRadius: 20,
               backgroundColor: torchEnabled ? "#4be277" : "rgba(0,0,0,0.45)",
             }}
@@ -205,7 +215,10 @@ export default function ScanScreen() {
       </SafeAreaView>
 
       {/* Bottom Controls */}
-      <SafeAreaView edges={["bottom"]} className="absolute bottom-0 left-0 right-0">
+      <SafeAreaView
+        edges={["bottom"]}
+        className="absolute bottom-0 left-0 right-0"
+      >
         {/* Hint Text */}
         <View className="items-center mb-4">
           <View className="rounded-full bg-black/60 px-4 py-1.5">

@@ -2,6 +2,8 @@ import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { readAsStringAsync, EncodingType } from "expo-file-system/legacy";
 
 import { isGeminiConfigured, scanReceiptImage, scanReceiptPDF } from "@/lib/gemini";
+import { isOpenRouterConfigured, scanReceiptImage as scanOpenRouterImage, scanReceiptPDF as scanOpenRouterPDF } from "@/lib/openrouter";
+import { isOpencodeConfigured, scanReceiptImage as scanOpencodeImage, scanReceiptPDF as scanOpencodePDF } from "@/lib/opencode";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { ScanResult, ScanResultItem } from "@/types/api";
 import type { SupportedCurrency } from "@/types/receipt";
@@ -54,10 +56,44 @@ export async function extractReceiptData(
     return res.json() as Promise<ScanResult>;
   }
 
+  const errors: string[] = [];
+  const hasConfiguredService = isGeminiConfigured || isOpenRouterConfigured || isOpencodeConfigured;
+
+  // 1. Gemini
   if (isGeminiConfigured && image.base64) {
-    const result = await scanReceiptImage(image.base64);
-    await logScan({ ...result, source: "camera", fileType: "image", modelUsed: "gemini-2.0-flash" });
-    return result;
+    try {
+      const result = await scanReceiptImage(image.base64);
+      await logScan({ ...result, source: "camera", fileType: "image", modelUsed: "gemini-2.0-flash" });
+      return result;
+    } catch (err) {
+      errors.push(`Gemini: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // 2. OpenRouter
+  if (isOpenRouterConfigured && image.base64) {
+    try {
+      const result = await scanOpenRouterImage(image.base64);
+      await logScan({ ...result, source: "camera", fileType: "image", modelUsed: "openrouter/free" });
+      return result;
+    } catch (err) {
+      errors.push(`OpenRouter: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // 3. OpenCode (MiMo-V2.5 Free)
+  if (isOpencodeConfigured && image.base64) {
+    try {
+      const result = await scanOpencodeImage(image.base64);
+      await logScan({ ...result, source: "camera", fileType: "image", modelUsed: "mimo-v2.5-free" });
+      return result;
+    } catch (err) {
+      errors.push(`OpenCode (MiMo): ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  if (hasConfiguredService) {
+    throw new Error(`All configured AI receipt scanning models failed:\n\n${errors.join("\n\n")}`);
   }
 
   return mockExtractReceiptData();
@@ -76,10 +112,44 @@ export async function extractReceiptDataFromPDF(
     return res.json() as Promise<ScanResult>;
   }
 
+  const errors: string[] = [];
+  const hasConfiguredService = isGeminiConfigured || isOpenRouterConfigured || isOpencodeConfigured;
+
+  // 1. Gemini
   if (isGeminiConfigured) {
-    const result = await scanReceiptPDF(base64);
-    await logScan({ ...result, source: "pdf", fileType: "pdf", modelUsed: "gemini-2.0-flash" });
-    return result;
+    try {
+      const result = await scanReceiptPDF(base64);
+      await logScan({ ...result, source: "pdf", fileType: "pdf", modelUsed: "gemini-2.0-flash" });
+      return result;
+    } catch (err) {
+      errors.push(`Gemini: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // 2. OpenRouter
+  if (isOpenRouterConfigured) {
+    try {
+      const result = await scanOpenRouterPDF(base64);
+      await logScan({ ...result, source: "pdf", fileType: "pdf", modelUsed: "openrouter/free" });
+      return result;
+    } catch (err) {
+      errors.push(`OpenRouter: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // 3. OpenCode (MiMo-V2.5 Free)
+  if (isOpencodeConfigured) {
+    try {
+      const result = await scanOpencodePDF(base64);
+      await logScan({ ...result, source: "pdf", fileType: "pdf", modelUsed: "mimo-v2.5-free" });
+      return result;
+    } catch (err) {
+      errors.push(`OpenCode (MiMo): ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  if (hasConfiguredService) {
+    throw new Error(`All configured AI PDF scanning models failed:\n\n${errors.join("\n\n")}`);
   }
 
   return mockExtractReceiptData();

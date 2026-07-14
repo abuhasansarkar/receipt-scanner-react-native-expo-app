@@ -163,7 +163,21 @@ async function geminiGenerate(
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`Gemini scan failed (${res.status}): ${text}`);
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.error?.message) {
+        const msg = parsed.error.message;
+        if (res.status === 429) {
+          const retryMatch = msg.match(/Please retry in ([\d.]+)s/);
+          const retrySec = retryMatch ? ` Please retry in ${Math.round(parseFloat(retryMatch[1]))}s.` : "";
+          throw new Error(`Quota Limit Exceeded (429): You have hit the Gemini API rate limits.${retrySec}`);
+        }
+        throw new Error(`Gemini scan failed (${res.status}): ${msg}`);
+      }
+    } catch (e) {
+      if (e instanceof Error) throw e;
+    }
+    throw new Error(`Gemini scan failed (${res.status}): ${text || res.statusText}`);
   }
 
   const data: GeminiResponse = await res.json();
