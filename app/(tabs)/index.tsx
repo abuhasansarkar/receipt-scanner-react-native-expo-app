@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DonutChart } from "@/components/charts/DonutChart";
 import { LineChart } from "@/components/charts/LineChart";
 import { useAuth } from "@/features/auth/hooks";
+import { useThemeColors } from "@/features/settings/hooks";
 import {
   useMonthlyInsights,
   useSpendingTrends,
@@ -58,6 +59,7 @@ function StatCard({
 }
 
 export default function DashboardScreen() {
+  const colors = useThemeColors();
   const router = useRouter();
   const { user } = useAuth();
   const receipts = useReceipts();
@@ -135,7 +137,7 @@ export default function DashboardScreen() {
             <Ionicons
               name="notifications-outline"
               size={20}
-              color="#dce5d9"
+              color={colors.text}
             />
           </View>
         </View>
@@ -229,7 +231,7 @@ export default function DashboardScreen() {
           <View className="card-dark mb-4 p-4">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-body font-semibold">Spending Trend</Text>
-              <Ionicons name="ellipsis-horizontal" size={18} color="#869585" />
+              <Ionicons name="ellipsis-horizontal" size={18} color={colors.chevron} />
             </View>
             <LineChart data={trendData} height={140} />
           </View>

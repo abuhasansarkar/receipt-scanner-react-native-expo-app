@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { View } from "react-native";
 import Svg, { Defs, LinearGradient, Stop, Path, Circle } from "react-native-svg";
 
+import { useThemeColors } from "@/features/settings/hooks";
+
 interface SparklineProps {
   data: number[];
   color?: string;
@@ -15,6 +17,7 @@ export function Sparkline({
   height = 100,
   strokeWidth = 2,
 }: SparklineProps) {
+  const colors = useThemeColors();
   if (data.length < 2) return null;
 
   const maxVal = Math.max(...data);
@@ -68,7 +71,7 @@ export function Sparkline({
             cy={p.y}
             r={2.5}
             fill={color}
-            stroke="#0e150e"
+            stroke={colors.surfaceBase}
             strokeWidth={1}
           />
         ))}

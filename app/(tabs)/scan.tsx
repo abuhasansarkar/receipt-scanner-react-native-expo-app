@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ScanOverlay } from "@/components/scanner/ScanOverlay";
 import { ReceiptService } from "@/features/receipts/service";
 import { useScanner, type ScanOutcome } from "@/features/scanner/hooks";
+import { NotificationService } from "@/features/notifications/service";
 import type { ReceiptCategory } from "@/types/receipt";
 import type { Href } from "expo-router";
 
@@ -55,6 +56,12 @@ export default function ScanScreen() {
       status: lowConfidence ? "needs_review" : "verified",
       source,
     });
+
+    NotificationService.sendLocalNotification(
+      "Scan Complete! 🧾",
+      `Processed ${result.merchant} for ${result.currency} ${result.total.toFixed(2)}.`
+    ).catch(() => {});
+
     router.push(`/receipt/${receipt.id}` as Href);
   };
 

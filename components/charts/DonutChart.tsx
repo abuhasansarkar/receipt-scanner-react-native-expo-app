@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { Text, View } from "react-native";
 import Svg, { G, Path, Circle } from "react-native-svg";
 
+import { useThemeColors } from "@/features/settings/hooks";
+
 interface DonutSegment {
   value: number;
   color: string;
@@ -50,6 +52,7 @@ function describeArc(
 }
 
 export function DonutChart({ data, size = 120, strokeWidth = 12 }: Props) {
+  const colors = useThemeColors();
   const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
   const radius = (size - strokeWidth) / 2;
   const cx = size / 2;
@@ -86,7 +89,7 @@ export function DonutChart({ data, size = 120, strokeWidth = 12 }: Props) {
             height: size,
             borderRadius: size / 2,
             borderWidth: strokeWidth,
-            borderColor: "#1a221a",
+            borderColor: colors.surfaceBorder,
           }}
         />
         <Text
@@ -103,7 +106,7 @@ export function DonutChart({ data, size = 120, strokeWidth = 12 }: Props) {
     <View className="items-center justify-center" style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
         <G rotation={-90} originX={cx} originY={cy}>
-          <Circle cx={cx} cy={cy} r={radius} fill="none" stroke="#1a221a" strokeWidth={strokeWidth} />
+          <Circle cx={cx} cy={cy} r={radius} fill="none" stroke={colors.surfaceBorder} strokeWidth={strokeWidth} />
           {segments.map((seg, i) => (
             <Path
               key={i}
@@ -117,11 +120,11 @@ export function DonutChart({ data, size = 120, strokeWidth = 12 }: Props) {
         </G>
       </Svg>
       <View
-        className="absolute items-center justify-center rounded-full bg-surface"
+        className="absolute items-center justify-center rounded-full bg-surface-container"
         style={{ width: size - strokeWidth * 2, height: size - strokeWidth * 2 }}
       >
         <Text
-          className="font-bold text-white"
+          className="font-bold text-surface-text"
           style={{ fontSize: radius * 0.48, lineHeight: radius * 0.56 }}
         >
           {centerLabel.pct}

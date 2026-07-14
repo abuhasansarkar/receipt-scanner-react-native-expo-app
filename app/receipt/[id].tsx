@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { LineItemEditor } from "@/components/ui/LineItemEditor";
 import { useReceipt, useReceiptActions } from "@/features/receipts/hooks";
+import { useThemeColors } from "@/features/settings/hooks";
 import { SUPPORTED_CURRENCIES, TAG_PRESETS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import type {
@@ -33,6 +34,7 @@ import type {
 } from "@/types/receipt";
 
 export default function ReceiptDetailScreen() {
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const receipt = useReceipt(id);
@@ -180,7 +182,7 @@ export default function ReceiptDetailScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-surface-border">
           <Pressable onPress={() => router.back()} className="p-1 w-10">
-            <Ionicons name="arrow-back" size={24} color="#dce5d9" />
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
           <Text className="text-lg font-bold text-surface-text text-center flex-1">
             Receipt Detail
@@ -240,7 +242,7 @@ export default function ReceiptDetailScreen() {
                 </>
               ) : (
                 <View className="items-center">
-                  <Ionicons name="receipt-outline" size={40} color="#3d4a3d" />
+                  <Ionicons name="receipt-outline" size={40} color={colors.isDark ? "#3d4a3d" : "#cbd5e1"} />
                   <Text className="mt-2 text-xs text-muted">No image</Text>
                 </View>
               )}
@@ -251,7 +253,7 @@ export default function ReceiptDetailScreen() {
           {hasAiSuggestions && (
             <View className="mb-5 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4">
               <View className="mb-2 flex-row items-center gap-2">
-                <Ionicons name="bulb-outline" size={16} color="#adc6ff" />
+                <Ionicons name="bulb-outline" size={16} color={colors.isDark ? "#adc6ff" : "#0566d9"} />
                 <Text className="text-sm font-semibold text-secondary">
                   AI Suggestions
                 </Text>
@@ -285,7 +287,7 @@ export default function ReceiptDetailScreen() {
             onChangeText={setMerchant}
             placeholder="Merchant name"
             confidence={receipt.confidence?.merchant}
-            leftIcon={<Ionicons name="search-outline" size={18} color="#869585" />}
+            leftIcon={<Ionicons name="search-outline" size={18} color={colors.muted} />}
           />
 
           {/* Currency + Amount row */}
@@ -329,7 +331,7 @@ export default function ReceiptDetailScreen() {
                 placeholder="0.00"
                 keyboardType="decimal-pad"
                 confidence={receipt.confidence?.total}
-                leftIcon={<Ionicons name="cash-outline" size={18} color="#869585" />}
+                leftIcon={<Ionicons name="cash-outline" size={18} color={colors.muted} />}
               />
             </View>
           </View>
@@ -338,12 +340,12 @@ export default function ReceiptDetailScreen() {
           <View className="mb-4">
             <Text className="mb-1.5 text-xs font-medium text-muted">Date</Text>
             <View className="flex-row items-center gap-3 rounded-xl border border-surface-border bg-surface-container px-4 py-3">
-              <Ionicons name="calendar-outline" size={18} color="#869585" />
+              <Ionicons name="calendar-outline" size={18} color={colors.muted} />
               <TextInput
                 value={date}
                 onChangeText={setDate}
                 placeholder={formatDate(receipt.date)}
-                placeholderTextColor="#5a6d5a"
+                placeholderTextColor={colors.chevron}
                 className="flex-1 text-base text-surface-text"
               />
             </View>
@@ -364,12 +366,12 @@ export default function ReceiptDetailScreen() {
                 Payment Method
               </Text>
               <View className="flex-row items-center gap-3 rounded-xl border border-surface-border bg-surface-container px-4 py-3">
-                <Ionicons name="card-outline" size={18} color="#869585" />
+                <Ionicons name="card-outline" size={18} color={colors.muted} />
                 <TextInput
                   value={paymentMethod}
                   onChangeText={setPaymentMethod}
                   placeholder="e.g. Visa *4242"
-                  placeholderTextColor="#5a6d5a"
+                  placeholderTextColor={colors.chevron}
                   className="flex-1 text-base text-surface-text"
                 />
               </View>
@@ -381,12 +383,12 @@ export default function ReceiptDetailScreen() {
               Receipt Number
             </Text>
             <View className="flex-row items-center gap-3 rounded-xl border border-surface-border bg-surface-container px-4 py-3">
-              <Ionicons name="pricetag-outline" size={18} color="#869585" />
+              <Ionicons name="pricetag-outline" size={18} color={colors.muted} />
               <TextInput
                 value={receiptNumber}
                 onChangeText={setReceiptNumber}
                 placeholder="#12345"
-                placeholderTextColor="#5a6d5a"
+                placeholderTextColor={colors.chevron}
                 className="flex-1 text-base text-surface-text"
               />
             </View>
