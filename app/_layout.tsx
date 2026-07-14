@@ -7,48 +7,43 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { isClerkConfigured, publishableKey, tokenCache } from "@/lib/clerk";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AuthProvider } from "@/features/auth/provider";
 
 function RootLayoutInner() {
   return (
     <ThemeProvider value={DarkTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="receipt/[id]"
-          options={{
-            headerShown: true,
-            title: "Receipt",
-            presentation: "modal",
-            headerStyle: { backgroundColor: "#0e150e" },
-            headerTintColor: "#dce5d9",
-          }}
-        />
-        <Stack.Screen name="(auth)" options={{ presentation: "modal" }} />
-      </Stack>
+      <ErrorBoundary>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="receipt/[id]"
+            options={{
+              headerShown: true,
+              title: "Receipt",
+              presentation: "modal",
+              headerStyle: { backgroundColor: "#0e150e" },
+              headerTintColor: "#dce5d9",
+            }}
+          />
+          <Stack.Screen name="(auth)" options={{ presentation: "modal" }} />
+        </Stack>
+      </ErrorBoundary>
       <StatusBar style="light" />
     </ThemeProvider>
   );
 }
 
 export default function RootLayout() {
-  const content = (
+  return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <RootLayoutInner />
+        <AuthProvider>
+          <RootLayoutInner />
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
-
-  if (isClerkConfigured) {
-    return (
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        {content}
-      </ClerkProvider>
-    );
-  }
-
-  return content;
 }

@@ -23,7 +23,9 @@ function formatDateSectionLabel(iso: string): string {
   });
 }
 
-function groupByDate(receipts: Receipt[]): { title: string; data: Receipt[] }[] {
+function groupByDate(
+  receipts: Receipt[],
+): { title: string; data: Receipt[] }[] {
   const groups = new Map<string, Receipt[]>();
   for (const r of receipts) {
     const label = formatDateSectionLabel(r.date);
@@ -56,9 +58,9 @@ export default function ReceiptsScreen() {
       result = result.filter((r) => r.category === activeFilter);
     }
     if (query.trim()) {
-      const q = query.toLowerCase();
+      const q = query.trim().toLowerCase();
       result = result.filter(
-        (r) => r.merchant.toLowerCase().includes(q) || r.category.includes(q)
+        (r) => r.merchant.toLowerCase().includes(q) || r.category.includes(q),
       );
     }
     return result;
@@ -67,9 +69,17 @@ export default function ReceiptsScreen() {
   const sections = useMemo(() => groupByDate(filtered), [filtered]);
 
   const data = useMemo(() => {
-    const items: { type: "section" | "receipt"; value: string | Receipt; sectionTitle: string }[] = [];
+    const items: {
+      type: "section" | "receipt";
+      value: string | Receipt;
+      sectionTitle: string;
+    }[] = [];
     for (const section of sections) {
-      items.push({ type: "section", value: section.title, sectionTitle: section.title });
+      items.push({
+        type: "section",
+        value: section.title,
+        sectionTitle: section.title,
+      });
       for (const r of section.data) {
         items.push({ type: "receipt", value: r, sectionTitle: section.title });
       }
@@ -82,7 +92,9 @@ export default function ReceiptsScreen() {
       <FlatList
         data={data}
         keyExtractor={(item) =>
-          item.type === "section" ? `section-${item.value}` : (item.value as Receipt).id
+          item.type === "section"
+            ? `section-${item.value}`
+            : (item.value as Receipt).id
         }
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
@@ -92,14 +104,20 @@ export default function ReceiptsScreen() {
             <View className="flex-row items-center justify-between mt-2 mb-4">
               <View className="flex-row items-center gap-3">
                 <View className="header-avatar">
-                  <Text className="text-sm font-semibold text-brand">{userInitial}</Text>
+                  <Text className="text-sm font-semibold text-brand">
+                    {userInitial}
+                  </Text>
                 </View>
                 <Text className="text-lg font-bold tracking-tight text-brand">
-                  AuraReceipt
+                  ReceiptBrain
                 </Text>
               </View>
               <View className="icon-40">
-                <Ionicons name="notifications-outline" size={20} color="#dce5d9" />
+                <Ionicons
+                  name="notifications-outline"
+                  size={20}
+                  color="#dce5d9"
+                />
               </View>
             </View>
 
@@ -130,11 +148,15 @@ export default function ReceiptsScreen() {
                 <Pressable
                   key={item.value}
                   onPress={() => setActiveFilter(item.value)}
-                  className={activeFilter === item.value ? "pill-sm-active" : "pill-sm"}
+                  className={
+                    activeFilter === item.value ? "pill-sm-active" : "pill-sm"
+                  }
                 >
                   <Text
                     className={`text-xs font-semibold ${
-                      activeFilter === item.value ? "text-on-primary" : "text-on-surface-variant"
+                      activeFilter === item.value
+                        ? "text-on-primary"
+                        : "text-on-surface-variant"
                     }`}
                   >
                     {item.label}
@@ -149,9 +171,13 @@ export default function ReceiptsScreen() {
             <View className="w-16 h-16 items-center justify-center rounded-full bg-surface-container mb-4">
               <Ionicons name="receipt-outline" size={28} color="#3d4a3d" />
             </View>
-            <Text className="mb-1.5 text-base font-semibold text-surface-text">No receipts found</Text>
+            <Text className="mb-1.5 text-base font-semibold text-surface-text">
+              No receipts found
+            </Text>
             <Text className="text-center text-sm text-muted">
-              {query ? "Try a different search term" : "Scan your first receipt to get started"}
+              {query
+                ? "Try a different search term"
+                : "Scan your first receipt to get started"}
             </Text>
           </View>
         }

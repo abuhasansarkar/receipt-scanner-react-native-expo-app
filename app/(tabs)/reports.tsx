@@ -1,10 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useReceipts, useTaxDeductibleTotal } from "@/features/receipts/hooks";
 import { useTaxReport } from "@/features/reports/hooks";
+import { generateCsv } from "@/features/reports/service";
 import { getCategoryMeta } from "@/lib/constants";
 import { formatCurrency, startOfMonth, endOfMonth, isWithinRange, addDays } from "@/lib/utils";
 
@@ -12,8 +16,43 @@ export default function ReportsScreen() {
   const receipts = useReceipts();
   const taxReport = useTaxReport();
   const taxTotal = useTaxDeductibleTotal();
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const latestReceiptDate = useMemo(() => {
+    if (receipts.length === 0) return null;
+    const dates = receipts.map((r) => new Date(r.date).getTime());
+    return new Date(Math.max(...dates));
+  }, [receipts]);
+
+  const [selectedMonthState, setSelectedMonthState] = useState<Date | null>(null);
+  const [selectedYearState, setSelectedYearState] = useState<number | null>(null);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+
+  const selectedMonth = selectedMonthState ?? latestReceiptDate ?? new Date();
+  const selectedYear = selectedYearState ?? selectedMonth.getFullYear();
+
+  const availableMonths = useMemo(() => {
+    const monthsMap = new Map<string, Date>();
+    for (const r of receipts) {
+      const d = new Date(r.date);
+      const key = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      if (!monthsMap.has(key)) {
+        monthsMap.set(key, startOfMonth(d));
+      }
+    }
+    return Array.from(monthsMap.values()).sort((a, b) => b.getTime() - a.getTime());
+  }, [receipts]);
+
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set<number>();
+    for (const r of receipts) {
+      yearsSet.add(new Date(r.date).getFullYear());
+    }
+    if (yearsSet.size === 0) {
+      yearsSet.add(new Date().getFullYear());
+    }
+    return Array.from(yearsSet).sort((a, b) => b - a);
+  }, [receipts]);
 
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
@@ -84,6 +123,159 @@ export default function ReportsScreen() {
     });
   }, [maxWeek]);
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportCsv = async () => {
+    if (monthReceipts.length === 0) {
+      Alert.alert("No Data", "There are no receipts in this period to export.");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const csvContent = generateCsv(monthReceipts, {
+        dateRange: { start: monthStart.toISOString(), end: monthEnd.toISOString() },
+        includeTaxInfo: false,
+        includeImages: false,
+        format: "csv",
+        groupBy: "category",
+      });
+      const filename = `ReceiptBrain-Report-${monthLabel.replace(/\s+/g, "-")}.csv`;
+      const fileUri = `${FileSystem.documentDirectory}${filename}`;
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "text/csv",
+          dialogTitle: "Export Report CSV",
+          UTI: "public.comma-separated-values-text",
+        });
+      } else {
+        Alert.alert("Sharing unavailable", "Your device does not support native file sharing.");
+      }
+    } catch (err) {
+      Alert.alert("Export Failed", err instanceof Error ? err.message : "Failed to export CSV report.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (monthReceipts.length === 0) {
+      Alert.alert("No Data", "There are no receipts in this period to export.");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>ReceiptBrain Expense Report - ${monthLabel}</title>
+            <style>
+              body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; padding: 40px; margin: 0; background: #ffffff; }
+              h1 { font-size: 26px; color: #0f172a; margin: 0 0 5px 0; }
+              .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+              .meta { text-align: right; }
+              .meta p { margin: 3px 0; font-size: 13px; color: #64748b; }
+              .summary-cards { display: flex; gap: 20px; margin-bottom: 30px; }
+              .card { flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; background: #f8fafc; }
+              .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; margin: 0 0 6px 0; letter-spacing: 0.5px; }
+              .card-value { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; }
+              table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+              th { text-align: left; padding: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #cbd5e1; letter-spacing: 0.5px; }
+              td { padding: 12px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
+              .total-row { font-weight: bold; background: #f1f5f9; }
+              .badge { display: inline-block; padding: 3px 8px; font-size: 10px; font-weight: 700; border-radius: 9999px; text-transform: uppercase; }
+              .badge-verified { background: #dcfce7; color: #166534; }
+              .badge-review { background: #fef3c7; color: #9a3412; }
+              .footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 60px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div>
+                <h1>ReceiptBrain Expense Report</h1>
+                <p style="margin: 0; color: #64748b; font-size: 14px;">Period: ${monthLabel}</p>
+              </div>
+              <div class="meta">
+                <p>Generated: ${new Date().toLocaleDateString()}</p>
+                <p>Receipts: ${monthReceipts.length}</p>
+              </div>
+            </div>
+
+            <div class="summary-cards">
+              <div class="card">
+                <p class="card-title">Total Spent</p>
+                <p class="card-value">${formatCurrency(totalSpent)}</p>
+              </div>
+              <div class="card">
+                <p class="card-title">Tax Deductions</p>
+                <p class="card-value">${formatCurrency(potentialDeductions)}</p>
+              </div>
+              <div class="card">
+                <p class="card-title">Est. Tax Savings</p>
+                <p class="card-value" style="color: #10b981;">${formatCurrency(estimatedSavings)}</p>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Merchant</th>
+                  <th>Category</th>
+                  <th>Tax Deductible</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${monthReceipts.map(r => `
+                  <tr>
+                    <td>${new Date(r.date).toLocaleDateString()}</td>
+                    <td><strong>${r.merchant}</strong></td>
+                    <td>${r.category.toUpperCase()}</td>
+                    <td>${r.isTaxDeductible ? "Yes" : "No"}</td>
+                    <td>
+                      <span class="badge ${r.status === 'verified' ? 'badge-verified' : 'badge-review'}">
+                        ${r.status === 'needs_review' ? 'Needs Review' : 'Verified'}
+                      </span>
+                    </td>
+                    <td style="text-align: right; font-weight: 600;">${formatCurrency(r.total, r.currency)}</td>
+                  </tr>
+                `).join("")}
+                <tr class="total-row">
+                  <td colspan="5">Total</td>
+                  <td style="text-align: right;">${formatCurrency(totalSpent)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <p>Report generated via ReceiptBrain. Please consult your tax professional for compliance verification.</p>
+            </div>
+          </body>
+        </html>
+      `;
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: `Export Report PDF`,
+        });
+      } else {
+        Alert.alert("Sharing unavailable", "Your device does not support native file sharing.");
+      }
+    } catch (err) {
+      Alert.alert("Export Failed", err instanceof Error ? err.message : "Failed to export PDF report.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-surface-base" edges={["top"]}>
       <ScrollView
@@ -98,7 +290,7 @@ export default function ReportsScreen() {
               <Text className="text-sm font-semibold text-brand">U</Text>
             </View>
             <Text className="text-lg font-bold tracking-tight text-brand">
-              AuraReceipt
+              ReceiptBrain
             </Text>
           </View>
           <View className="icon-40">
@@ -119,10 +311,41 @@ export default function ReportsScreen() {
         <View className="card-dark p-5 mb-4">
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="text-body font-semibold">Monthly Report</Text>
-            <Pressable className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5">
-              <Text className="text-xs font-semibold text-on-surface-variant">{monthLabel}</Text>
-              <Ionicons name="chevron-down" size={12} color="#869585" />
-            </Pressable>
+            <View className="relative">
+              <Pressable
+                onPress={() => {
+                  setShowMonthPicker(!showMonthPicker);
+                  setShowYearPicker(false);
+                }}
+                className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5"
+              >
+                <Text className="text-xs font-semibold text-on-surface-variant">{monthLabel}</Text>
+                <Ionicons name="chevron-down" size={12} color="#869585" />
+              </Pressable>
+              {showMonthPicker && availableMonths.length > 0 && (
+                <View className="absolute right-0 top-10 z-50 w-44 rounded-xl border border-surface-border bg-surface-container p-1 shadow-lg">
+                  {availableMonths.map((m) => {
+                    const label = m.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+                    const isSelected = m.getMonth() === selectedMonth.getMonth() && m.getFullYear() === selectedMonth.getFullYear();
+                    return (
+                      <Pressable
+                        key={label}
+                        onPress={() => {
+                          setSelectedMonthState(m);
+                          setSelectedYearState(m.getFullYear());
+                          setShowMonthPicker(false);
+                        }}
+                        className={`rounded-lg px-3 py-2 ${isSelected ? "bg-brand/15" : ""}`}
+                      >
+                        <Text className={`text-xs ${isSelected ? "font-semibold text-brand" : "text-surface-text"}`}>
+                          {label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
           </View>
 
           <Text className="mb-1 text-[28px] font-bold text-surface-text leading-8">
@@ -188,10 +411,39 @@ export default function ReportsScreen() {
         <View className="card-dark p-5 mb-4">
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="text-body font-semibold">Tax Summary</Text>
-            <Pressable className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5">
-              <Text className="text-xs font-semibold text-on-surface-variant">{selectedYear}</Text>
-              <Ionicons name="chevron-down" size={12} color="#869585" />
-            </Pressable>
+            <View className="relative">
+              <Pressable
+                onPress={() => {
+                  setShowYearPicker(!showYearPicker);
+                  setShowMonthPicker(false);
+                }}
+                className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5"
+              >
+                <Text className="text-xs font-semibold text-on-surface-variant">{selectedYear}</Text>
+                <Ionicons name="chevron-down" size={12} color="#869585" />
+              </Pressable>
+              {showYearPicker && availableYears.length > 0 && (
+                <View className="absolute right-0 top-10 z-50 w-28 rounded-xl border border-surface-border bg-surface-container p-1 shadow-lg">
+                  {availableYears.map((y) => {
+                    const isSelected = y === selectedYear;
+                    return (
+                      <Pressable
+                        key={y}
+                        onPress={() => {
+                          setSelectedYearState(y);
+                          setShowYearPicker(false);
+                        }}
+                        className={`rounded-lg px-3 py-2 ${isSelected ? "bg-brand/15" : ""}`}
+                      >
+                        <Text className={`text-xs ${isSelected ? "font-semibold text-brand" : "text-surface-text"}`}>
+                          {y}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
           </View>
 
           <View className="mb-5 flex-row gap-6">
@@ -246,14 +498,22 @@ export default function ReportsScreen() {
         <View className="mb-4">
           <Text className="mb-3 px-1 text-body font-semibold">Export Report</Text>
           <View className="card-dark overflow-hidden">
-            <Pressable className="flex-row items-center gap-3 border-b border-surface-border px-4 py-4 active:opacity-70">
+            <Pressable
+              onPress={handleExportPdf}
+              disabled={isExporting}
+              className="flex-row items-center gap-3 border-b border-surface-border px-4 py-4 active:opacity-70"
+            >
               <View className="w-10 h-10 items-center justify-center rounded-xl bg-red-500/10">
                 <Ionicons name="document-text-outline" size={20} color="#ef4444" />
               </View>
               <Text className="flex-1 text-sm font-medium text-surface-text">Export as PDF</Text>
               <Ionicons name="chevron-forward" size={18} color="#5a6d5a" />
             </Pressable>
-            <Pressable className="flex-row items-center gap-3 px-4 py-4 active:opacity-70">
+            <Pressable
+              onPress={handleExportCsv}
+              disabled={isExporting}
+              className="flex-row items-center gap-3 px-4 py-4 active:opacity-70"
+            >
               <View className="w-10 h-10 items-center justify-center rounded-xl bg-green-500/10">
                 <Ionicons name="document-outline" size={20} color="#22c55e" />
               </View>

@@ -77,7 +77,7 @@ export default function SettingsScreen() {
         onPress: async () => {
           try {
             await signOut();
-            router.replace("/(auth)/welcome" as Href);
+            router.replace("/(auth)/sign-in" as Href);
           } catch {
             Alert.alert("Error", "Failed to sign out. Please try again.");
           }
@@ -102,15 +102,19 @@ export default function SettingsScreen() {
           {userEmail ? (
             <Text className="mb-3 text-sm text-muted">{userEmail}</Text>
           ) : null}
-          <View className="pro-badge">
-            <Ionicons name="diamond-outline" size={12} color="#4be277" />
-            <Text className="text-xs font-bold text-brand">PRO PLAN</Text>
-          </View>
+          {user?.plan && user.plan !== "free" && (
+            <View className="pro-badge">
+              <Ionicons name="diamond-outline" size={12} color="#4be277" />
+              <Text className="text-xs font-bold text-brand">
+                {user.plan.toUpperCase()} PLAN
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Account Group */}
         <SettingsGroup>
-          <SettingsRow icon="person-outline" label="Account" href="/settings/profile" />
+          <SettingsRow icon="person-outline" label="Account" onPress={() => {}} />
           <SettingsRowBorder icon="desktop-outline" label="Subscription" />
           <SettingsRowBorder icon="card-outline" label="Payment Methods" />
           <SettingsRowBorder icon="download-outline" label="Data & Export" />
@@ -118,14 +122,14 @@ export default function SettingsScreen() {
 
         {/* Preferences Group */}
         <SettingsGroup>
-          <SettingsRow icon="notifications-outline" label="Notifications" href="/settings/notifications" />
+          <SettingsRow icon="notifications-outline" label="Notifications" onPress={() => {}} />
           <SettingsRowBorder icon="moon-outline" label="Theme" value="Dark" />
         </SettingsGroup>
 
         {/* Support Group */}
         <SettingsGroup>
           <SettingsRow icon="help-circle-outline" label="Help & Support" />
-          <SettingsRowBorder icon="information-circle-outline" label="About AuraReceipt" />
+          <SettingsRowBorder icon="information-circle-outline" label="About ReceiptBrain" />
         </SettingsGroup>
 
         {/* Sign Out */}

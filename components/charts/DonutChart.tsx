@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Text, View } from "react-native";
+import Svg, { G, Path, Circle } from "react-native-svg";
 
 interface DonutSegment {
   value: number;
@@ -13,10 +14,46 @@ interface Props {
   strokeWidth?: number;
 }
 
+function polarToCartesian(
+  cx: number,
+  cy: number,
+  r: number,
+  angleDeg: number
+): { x: number; y: number } {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function describeArc(
+  cx: number,
+  cy: number,
+  r: number,
+  startAngle: number,
+  endAngle: number
+): string {
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return [
+    "M",
+    start.x,
+    start.y,
+    "A",
+    r,
+    r,
+    0,
+    largeArc,
+    0,
+    end.x,
+    end.y,
+  ].join(" ");
+}
+
 export function DonutChart({ data, size = 120, strokeWidth = 12 }: Props) {
   const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
   const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
+  const cx = size / 2;
+  const cy = size / 2;
 
   const segments = useMemo(() => {
     if (total === 0) return [];
@@ -24,19 +61,25 @@ export function DonutChart({ data, size = 120, strokeWidth = 12 }: Props) {
     return data
       .filter((d) => d.value > 0)
       .map((d) => {
-        const startAngle = (cumulative / total) * 360;
-        const arc = (d.value / total) * 360;
-        cumulative += d.value;
-        return { ...d, startAngle, arc };
+        const angle = (d.value / total) * 360;
+        const startAngle = cumulative;
+        cumulative += angle;
+        return { ...d, path: describeArc(cx, cy, radius, startAngle, startAngle + angle) };
       });
+  }, [data, total, cx, cy, radius]);
+
+  const centerLabel = useMemo(() => {
+    if (data.length === 0) return { pct: "0%", label: "" };
+    const top = data[0];
+    return {
+      pct: Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 }).format(top.value / total),
+      label: top.label.split(" ")[0],
+    };
   }, [data, total]);
 
   if (total === 0) {
     return (
-      <View
-        className="items-center justify-center"
-        style={{ width: size, height: size }}
-      >
+      <View className="items-center justify-center" style={{ width: size, height: size }}>
         <View
           style={{
             width: size,
@@ -57,100 +100,38 @@ export function DonutChart({ data, size = 120, strokeWidth = 12 }: Props) {
   }
 
   return (
-    <View
-      className="items-center justify-center"
-      style={{ width: size, height: size }}
-    >
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          overflow: "hidden",
-          backgroundColor: "#1a221a",
-        }}
-      >
-        {segments.map((seg, i) => {
-          const rotation = seg.startAngle - 90;
-          const halfCircle = seg.arc > 180;
-          const arcLength = (seg.arc / 360) * circumference;
-
-          return (
-            <View
+    <View className="items-center justify-center" style={{ width: size, height: size }}>
+      <Svg width={size} height={size}>
+        <G rotation={-90} originX={cx} originY={cy}>
+          <Circle cx={cx} cy={cy} r={radius} fill="none" stroke="#1a221a" strokeWidth={strokeWidth} />
+          {segments.map((seg, i) => (
+            <Path
               key={i}
-              className="absolute inset-0"
-              style={{
-                transform: [{ rotate: `${rotation}deg` }],
-              }}
-            >
-              {halfCircle ? (
-                <>
-                  <View
-                    className="absolute"
-                    style={{
-                      width: size / 2,
-                      height: size,
-                      borderRadius: 0,
-                      borderTopLeftRadius: size / 2,
-                      borderBottomLeftRadius: size / 2,
-                      backgroundColor: seg.color,
-                      left: 0,
-                    }}
-                  />
-                  <View
-                    className="absolute"
-                    style={{
-                      width: size,
-                      height: size,
-                      borderRadius: size / 2,
-                      borderColor: "transparent",
-                      borderWidth: strokeWidth,
-                      borderRightColor: seg.color,
-                      borderTopColor: seg.color,
-                      transform: [{ rotate: `${180 - seg.arc}deg` }],
-                    }}
-                  />
-                </>
-              ) : (
-                <View
-                  style={{
-                    width: size,
-                    height: size,
-                    borderRadius: size / 2,
-                    borderColor: "transparent",
-                    borderWidth: strokeWidth,
-                    borderRightColor: seg.color,
-                    borderTopColor: seg.color,
-                  }}
-                />
-              )}
-            </View>
-          );
-        })}
-      </View>
+              d={seg.path}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={strokeWidth}
+              strokeLinecap="butt"
+            />
+          ))}
+        </G>
+      </Svg>
       <View
         className="absolute items-center justify-center rounded-full bg-surface"
-        style={{
-          width: size - strokeWidth * 2,
-          height: size - strokeWidth * 2,
-        }}
+        style={{ width: size - strokeWidth * 2, height: size - strokeWidth * 2 }}
       >
         <Text
           className="font-bold text-white"
           style={{ fontSize: radius * 0.48, lineHeight: radius * 0.56 }}
         >
-          {Intl.NumberFormat("en-US", {
-            style: "percent",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-          }).format(data.length > 0 ? data[0].value / total : 0)}
+          {centerLabel.pct}
         </Text>
         <Text
           className="text-outline"
           style={{ fontSize: radius * 0.24, lineHeight: radius * 0.28 }}
           numberOfLines={1}
         >
-          {data.length > 0 ? data[0].label : ""}
+          {centerLabel.label}
         </Text>
       </View>
     </View>

@@ -1,5 +1,8 @@
+import * as FileSystem from "expo-file-system";
+import { randomUUID } from "expo-crypto";
+
 export function generateId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${Date.now().toString(36)}-${randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 const CURRENCY_FORMATS: Record<string, { locale: string; symbol: string }> = {
@@ -17,11 +20,6 @@ const CURRENCY_FORMATS: Record<string, { locale: string; symbol: string }> = {
   KRW: { locale: "ko-KR", symbol: "\u20A9" },
   SGD: { locale: "en-SG", symbol: "S$" },
   NZD: { locale: "en-NZ", symbol: "NZ$" },
-};
-
-const EXCHANGE_RATES: Record<string, Record<string, number>> = {
-  USD: { EUR: 0.92, GBP: 0.79, JPY: 149.5, CAD: 1.36, AUD: 1.52, INR: 83.2, BRL: 4.97, MXN: 17.2, CHF: 0.88, CNY: 7.24, KRW: 1320, SGD: 1.34, NZD: 1.63 },
-  EUR: { USD: 1.09, GBP: 0.86, JPY: 162.5, CAD: 1.48, AUD: 1.65, INR: 90.4, BRL: 5.4, MXN: 18.7, CHF: 0.96, CNY: 7.87, KRW: 1435, SGD: 1.46, NZD: 1.77 },
 };
 
 export function formatCurrency(amount: number, currency = "USD"): string {
@@ -44,10 +42,8 @@ export function formatCurrencyShort(amount: number, currency = "USD"): string {
 
 export function convertCurrency(amount: number, from: string, to: string): { amount: number; rate: number } {
   if (from === to) return { amount, rate: 1 };
-  const fromRates = EXCHANGE_RATES[from];
-  if (!fromRates || !fromRates[to]) return { amount, rate: 1 };
-  const rate = fromRates[to];
-  return { amount: Math.round(amount * rate * 100) / 100, rate };
+  console.warn("Currency conversion requires a live exchange rate API. Using passthrough.");
+  return { amount, rate: 1 };
 }
 
 export function formatDate(iso: string): string {
@@ -111,6 +107,17 @@ export function isWithinRange(iso: string, start: Date, end: Date): boolean {
 export function percentChange(current: number, previous: number): number {
   if (previous === 0) return current === 0 ? 0 : 1;
   return (current - previous) / previous;
+}
+
+export async function deleteFile(uri: string): Promise<void> {
+  try {
+    const info = await FileSystem.getInfoAsync(uri);
+    if (info.exists) {
+      await FileSystem.deleteAsync(uri, { idempotent: true });
+    }
+  } catch {
+    // non-critical
+  }
 }
 
 export function clamp(value: number, min: number, max: number): number {

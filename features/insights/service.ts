@@ -86,7 +86,9 @@ export function computeMonthlyInsights(receipts: Receipt[], now: Date = new Date
 export function computeSpendingTrends(receipts: Receipt[]): SpendingTrend[] {
   const grouped = new Map<string, { total: number; count: number }>();
   for (const r of receipts) {
-    const month = new Date(r.date).toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+    const d = new Date(r.date);
+    if (Number.isNaN(d.getTime())) continue;
+    const month = `${months[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
     const entry = grouped.get(month) ?? { total: 0, count: 0 };
     entry.total += r.total;
     entry.count += 1;
@@ -97,7 +99,9 @@ export function computeSpendingTrends(receipts: Receipt[]): SpendingTrend[] {
     .sort((a, b) => {
       const [aM, aY] = a.month.split(" ");
       const [bM, bY] = b.month.split(" ");
-      return parseInt(aY) - parseInt(bY) || months.indexOf(aM) - months.indexOf(bM);
+      const yearDiff = (parseInt(aY) || 0) - (parseInt(bY) || 0);
+      if (yearDiff !== 0) return yearDiff;
+      return months.indexOf(aM) - months.indexOf(bM);
     });
 }
 

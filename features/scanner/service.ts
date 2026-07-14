@@ -248,6 +248,96 @@ const MOCK_MERCHANTS: {
     category: "food",
     currency: "GBP",
   },
+  {
+    name: "CVS Pharmacy",
+    items: [
+      { name: "Ibuprofen", price: 8.99, quantity: 1 },
+      { name: "Band-Aids", price: 4.49, quantity: 1 },
+      { name: "Vitamin C", price: 12.99, quantity: 1 },
+    ],
+    category: "health",
+    currency: "USD",
+  },
+  {
+    name: "Netflix",
+    items: [{ name: "Premium Plan Monthly", price: 22.99, quantity: 1 }],
+    category: "entertainment",
+    currency: "USD",
+  },
+  {
+    name: "Shell Gas Station",
+    items: [{ name: "Regular Unleaded", price: 52.3, quantity: 1 }],
+    category: "travel",
+    currency: "USD",
+  },
+  {
+    name: "Best Buy",
+    items: [
+      { name: "USB-C Hub", price: 34.99, quantity: 1 },
+      { name: "HDMI Cable", price: 12.99, quantity: 2 },
+    ],
+    category: "office",
+    currency: "USD",
+  },
+  {
+    name: "Planet Fitness",
+    items: [{ name: "Monthly Membership", price: 10.99, quantity: 1 }],
+    category: "health",
+    currency: "USD",
+  },
+  {
+    name: "Amazon Web Services",
+    items: [
+      { name: "EC2 Instance (t3.medium)", price: 23.45, quantity: 1 },
+      { name: "S3 Storage", price: 4.32, quantity: 1 },
+    ],
+    category: "software",
+    currency: "USD",
+  },
+  {
+    name: "Trader Joe's",
+    items: [
+      { name: "Organic Milk", price: 4.99, quantity: 1 },
+      { name: "Trail Mix", price: 6.99, quantity: 1 },
+      { name: "Frozen Pizza", price: 5.49, quantity: 2 },
+      { name: "Orange Juice", price: 3.99, quantity: 1 },
+    ],
+    category: "food",
+    currency: "USD",
+  },
+  {
+    name: "Con Edison",
+    items: [{ name: "Monthly Electric Bill", price: 87.42, quantity: 1 }],
+    category: "utilities",
+    currency: "USD",
+  },
+  {
+    name: "Spotify",
+    items: [{ name: "Premium Duo", price: 14.99, quantity: 1 }],
+    category: "entertainment",
+    currency: "USD",
+  },
+  {
+    name: "Lyft",
+    items: [{ name: "Ride: Midtown to Brooklyn", price: 28.75, quantity: 1 }],
+    category: "travel",
+    currency: "USD",
+  },
+  {
+    name: "Walgreens",
+    items: [
+      { name: "Prescription Co-pay", price: 15.0, quantity: 1 },
+      { name: "Thermometer", price: 9.99, quantity: 1 },
+    ],
+    category: "health",
+    currency: "USD",
+  },
+  {
+    name: "WeWork",
+    items: [{ name: "Hot Desk Day Pass", price: 29.0, quantity: 1 }],
+    category: "office",
+    currency: "USD",
+  },
 ];
 
 function mockExtractReceiptData(): ScanResult {
@@ -258,15 +348,20 @@ function mockExtractReceiptData(): ScanResult {
     0
   );
 
+  const now = new Date();
+  const daysAgo = Math.floor(Math.random() * 60);
+  const hoursAgo = Math.floor(Math.random() * 12);
+  const mockDate = new Date(now.getTime() - daysAgo * 86400000 - hoursAgo * 3600000);
+
   return {
     merchant: selected.name,
     total: Math.round(total * 100) / 100,
     currency: selected.currency,
-    date: new Date().toISOString(),
+    date: mockDate.toISOString(),
     category: selected.category,
     items: selected.items,
     receiptNumber: `RCP-${Date.now().toString(36).toUpperCase()}`,
-    paymentMethod: "Visa ending in 4242",
+    paymentMethod: ["Visa ending in 4242", "Mastercard ending in 9876", "Amex ending in 5555", "Cash"][Math.floor(Math.random() * 4)],
     confidence: {
       merchant: 0.85,
       total: 0.88,

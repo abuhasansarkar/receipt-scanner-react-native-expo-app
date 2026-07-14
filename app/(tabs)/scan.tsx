@@ -29,6 +29,7 @@ export default function ScanScreen() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [autoCrop, setAutoCrop] = useState(true);
+  const [facing, setFacing] = useState<"back" | "front">("back");
 
   const handleScanOutcome = (outcome: ScanOutcome | null) => {
     if (!outcome) return;
@@ -120,7 +121,7 @@ export default function ScanScreen() {
       <CameraView
         ref={cameraRef}
         style={{ flex: 1 }}
-        facing="back"
+        facing={facing}
         mode="picture"
         ratio="4:3"
         enableTorch={torchEnabled}
@@ -194,23 +195,34 @@ export default function ScanScreen() {
             <Ionicons name="close" size={22} color="#ffffff" />
           </Pressable>
 
-          {/* Torch Toggle */}
-          <Pressable
-            onPress={() => setTorchEnabled(!torchEnabled)}
-            className="items-center justify-center rounded-full"
-            style={{
-              width: 40,
-              height: 100,
-              borderRadius: 20,
-              backgroundColor: torchEnabled ? "#4be277" : "rgba(0,0,0,0.45)",
-            }}
-          >
-            <Ionicons
-              name={torchEnabled ? "flash" : "flash-outline"}
-              size={20}
-              color={torchEnabled ? "#003915" : "#ffffff"}
-            />
-          </Pressable>
+          <View className="flex-row items-center gap-3">
+            {/* PDF Import Button */}
+            <Pressable
+              onPress={handleImportPDF}
+              disabled={busy}
+              className="icon-btn-circle"
+            >
+              <Ionicons name="document-text-outline" size={20} color="#ffffff" />
+            </Pressable>
+
+            {/* Torch Toggle */}
+            <Pressable
+              onPress={() => setTorchEnabled(!torchEnabled)}
+              className="items-center justify-center rounded-full"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: torchEnabled ? "#4be277" : "rgba(0,0,0,0.45)",
+              }}
+            >
+              <Ionicons
+                name={torchEnabled ? "flash" : "flash-outline"}
+                size={20}
+                color={torchEnabled ? "#003915" : "#ffffff"}
+              />
+            </Pressable>
+          </View>
         </View>
       </SafeAreaView>
 
@@ -229,14 +241,14 @@ export default function ScanScreen() {
         </View>
 
         {/* Control Row */}
-        <View className="flex-row items-center justify-between px-10 pb-6">
+        <View className="flex-row items-center justify-between px-8 pb-6">
           {/* Gallery */}
           <Pressable
             onPress={handleImport}
             disabled={busy}
-            className="scan-btn-circle"
+            className="w-14 h-14 rounded-2xl bg-black/45 border border-white/10 items-center justify-center active:bg-white/10"
           >
-            <Ionicons name="images-outline" size={22} color="#ffffff" />
+            <Ionicons name="image-outline" size={22} color="#ffffff" />
           </Pressable>
 
           {/* Capture Button */}
@@ -245,40 +257,38 @@ export default function ScanScreen() {
             disabled={busy || !isCameraReady}
             className="items-center justify-center"
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: 36,
-              padding: 4,
-              borderWidth: 3,
-              borderColor: isCameraReady
-                ? "rgba(255,255,255,0.35)"
-                : "rgba(255,255,255,0.12)",
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              borderWidth: 4,
+              borderColor: "#ffffff",
+              backgroundColor: "transparent",
             }}
           >
             <View
               className="items-center justify-center"
               style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
+                width: 62,
+                height: 62,
+                borderRadius: 31,
                 backgroundColor: busy
-                  ? "rgba(255,255,255,0.3)"
+                  ? "rgba(255,255,255,0.4)"
                   : isCameraReady
                     ? "#ffffff"
-                    : "rgba(255,255,255,0.15)",
+                    : "rgba(255,255,255,0.2)",
               }}
             >
               {busy ? <ActivityIndicator color="#003915" /> : null}
             </View>
           </Pressable>
 
-          {/* PDF Import */}
+          {/* Swap Camera Button */}
           <Pressable
-            onPress={handleImportPDF}
-            disabled={busy}
-            className="scan-btn-circle"
+            onPress={() => setFacing((prev) => (prev === "back" ? "front" : "back"))}
+            disabled={busy || !isCameraReady}
+            className="w-14 h-14 rounded-2xl bg-black/45 border border-white/10 items-center justify-center active:bg-white/10"
           >
-            <Ionicons name="document-outline" size={22} color="#ffffff" />
+            <Ionicons name="camera-reverse-outline" size={24} color="#ffffff" />
           </Pressable>
         </View>
       </SafeAreaView>
