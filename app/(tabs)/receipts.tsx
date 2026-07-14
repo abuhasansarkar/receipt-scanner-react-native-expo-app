@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ReceiptCard } from "@/components/receipt/ReceiptCard";
 import { useAuth } from "@/features/auth/hooks";
+import { useThemeColors } from "@/features/settings/hooks";
 import { useReceipts } from "@/features/receipts/hooks";
 import type { Receipt } from "@/types/receipt";
 
@@ -44,6 +45,7 @@ const FILTERS = [
 ];
 
 export default function ReceiptsScreen() {
+  const colors = useThemeColors();
   const router = useRouter();
   const { user } = useAuth();
   const receipts = useReceipts();
@@ -116,29 +118,29 @@ export default function ReceiptsScreen() {
                 <Ionicons
                   name="notifications-outline"
                   size={20}
-                  color="#dce5d9"
+                  color={colors.text}
                 />
               </View>
             </View>
 
             {/* Search Bar */}
             <View className="search-bar mb-3">
-              <Ionicons name="search-outline" size={18} color="#869585" />
+              <Ionicons name="search-outline" size={18} color={colors.muted} />
               <TextInput
                 value={query}
                 onChangeText={setQuery}
                 placeholder="Search receipts..."
-                placeholderTextColor="#869585"
+                placeholderTextColor={colors.muted}
                 className="flex-1 px-2 py-3 text-sm text-surface-text"
               />
               {query.length > 0 && (
                 <Pressable onPress={() => setQuery("")} className="mr-2">
-                  <Ionicons name="close-circle" size={18} color="#869585" />
+                  <Ionicons name="close-circle" size={18} color={colors.muted} />
                 </Pressable>
               )}
               <View className="w-px h-5 bg-surface-border mx-1" />
               <Pressable onPress={() => {}}>
-                <Ionicons name="options-outline" size={20} color="#869585" />
+                <Ionicons name="options-outline" size={20} color={colors.muted} />
               </Pressable>
             </View>
 
@@ -169,7 +171,7 @@ export default function ReceiptsScreen() {
         ListEmptyComponent={
           <View className="items-center pt-16">
             <View className="w-16 h-16 items-center justify-center rounded-full bg-surface-container mb-4">
-              <Ionicons name="receipt-outline" size={28} color="#3d4a3d" />
+              <Ionicons name="receipt-outline" size={28} color={colors.isDark ? "#3d4a3d" : "#cbd5e1"} />
             </View>
             <Text className="mb-1.5 text-base font-semibold text-surface-text">
               No receipts found

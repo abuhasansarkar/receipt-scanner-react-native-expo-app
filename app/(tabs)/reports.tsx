@@ -7,12 +7,14 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useReceipts, useTaxDeductibleTotal } from "@/features/receipts/hooks";
+import { useThemeColors } from "@/features/settings/hooks";
 import { useTaxReport } from "@/features/reports/hooks";
 import { generateCsv } from "@/features/reports/service";
 import { getCategoryMeta } from "@/lib/constants";
 import { formatCurrency, startOfMonth, endOfMonth, isWithinRange, addDays } from "@/lib/utils";
 
 export default function ReportsScreen() {
+  const colors = useThemeColors();
   const receipts = useReceipts();
   const taxReport = useTaxReport();
   const taxTotal = useTaxDeductibleTotal();
@@ -294,7 +296,7 @@ export default function ReportsScreen() {
             </Text>
           </View>
           <View className="icon-40">
-            <Ionicons name="notifications-outline" size={20} color="#dce5d9" />
+            <Ionicons name="notifications-outline" size={20} color={colors.text} />
           </View>
         </View>
 
@@ -302,7 +304,7 @@ export default function ReportsScreen() {
         <View className="flex-row items-center justify-between mb-5">
           <Text className="text-headline-lg">Reports</Text>
           <Pressable className="flex-row items-center gap-1.5">
-            <Ionicons name="create-outline" size={16} color="#869585" />
+            <Ionicons name="create-outline" size={16} color={colors.chevron} />
             <Text className="text-sm text-muted">Edit</Text>
           </Pressable>
         </View>
@@ -320,7 +322,7 @@ export default function ReportsScreen() {
                 className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5"
               >
                 <Text className="text-xs font-semibold text-on-surface-variant">{monthLabel}</Text>
-                <Ionicons name="chevron-down" size={12} color="#869585" />
+                <Ionicons name="chevron-down" size={12} color={colors.chevron} />
               </Pressable>
               {showMonthPicker && availableMonths.length > 0 && (
                 <View className="absolute right-0 top-10 z-50 w-44 rounded-xl border border-surface-border bg-surface-container p-1 shadow-lg">
@@ -420,7 +422,7 @@ export default function ReportsScreen() {
                 className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5"
               >
                 <Text className="text-xs font-semibold text-on-surface-variant">{selectedYear}</Text>
-                <Ionicons name="chevron-down" size={12} color="#869585" />
+                <Ionicons name="chevron-down" size={12} color={colors.chevron} />
               </Pressable>
               {showYearPicker && availableYears.length > 0 && (
                 <View className="absolute right-0 top-10 z-50 w-28 rounded-xl border border-surface-border bg-surface-container p-1 shadow-lg">
@@ -507,7 +509,7 @@ export default function ReportsScreen() {
                 <Ionicons name="document-text-outline" size={20} color="#ef4444" />
               </View>
               <Text className="flex-1 text-sm font-medium text-surface-text">Export as PDF</Text>
-              <Ionicons name="chevron-forward" size={18} color="#5a6d5a" />
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
             </Pressable>
             <Pressable
               onPress={handleExportCsv}
@@ -515,10 +517,10 @@ export default function ReportsScreen() {
               className="flex-row items-center gap-3 px-4 py-4 active:opacity-70"
             >
               <View className="w-10 h-10 items-center justify-center rounded-xl bg-green-500/10">
-                <Ionicons name="document-outline" size={20} color="#22c55e" />
+                <Ionicons name="document-outline" size={20} color={colors.brand} />
               </View>
               <Text className="flex-1 text-sm font-medium text-surface-text">Export as CSV</Text>
-              <Ionicons name="chevron-forward" size={18} color="#5a6d5a" />
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
             </Pressable>
           </View>
         </View>
@@ -526,7 +528,7 @@ export default function ReportsScreen() {
         {/* Tax Ready Banner */}
         <View className="flex-row items-start gap-3 rounded-2xl border border-brand/20 bg-brand/5 p-4">
           <View className="mt-0.5 w-6 h-6 items-center justify-center rounded-full bg-brand/20">
-            <Ionicons name="checkmark-circle" size={16} color="#4be277" />
+            <Ionicons name="checkmark-circle" size={16} color={colors.brand} />
           </View>
           <View className="flex-1">
             <Text className="text-sm font-semibold text-surface-text">This report is tax-ready.</Text>

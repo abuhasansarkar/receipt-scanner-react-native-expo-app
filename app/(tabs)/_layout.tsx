@@ -2,16 +2,20 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Platform, View } from "react-native";
 
+import { useThemeColors } from "@/features/settings/hooks";
+
 export default function TabLayout() {
+  const colors = useThemeColors();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#4be277",
-        tabBarInactiveTintColor: "#5a6d5a",
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: colors.isDark ? "#5a6d5a" : "#94a3b8",
         tabBarStyle: {
-          backgroundColor: "#0e150e",
-          borderTopColor: "#3d4a3d",
+          backgroundColor: colors.surfaceCard,
+          borderTopColor: colors.surfaceBorder,
           borderTopWidth: 1,
           height: Platform.OS === "ios" ? 96 : 76,
           paddingBottom: Platform.OS === "ios" ? 28 : 12,
@@ -45,24 +49,24 @@ export default function TabLayout() {
         name="scan"
         options={{
           tabBarLabel: "",
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <View
               style={{
                 width: 56,
                 height: 56,
                 borderRadius: 28,
-                backgroundColor: "#4be277",
+                backgroundColor: colors.brand,
                 alignItems: "center",
                 justifyContent: "center",
                 marginTop: -16,
-                shadowColor: "#4be277",
+                shadowColor: colors.brand,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.4,
                 shadowRadius: 12,
                 elevation: 8,
               }}
             >
-              <Ionicons name="scan" size={24} color="#003915" />
+              <Ionicons name="scan" size={24} color={colors.isDark ? "#003915" : "#ffffff"} />
             </View>
           ),
         }}

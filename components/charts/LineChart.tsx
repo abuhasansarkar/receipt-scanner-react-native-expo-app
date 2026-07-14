@@ -11,6 +11,8 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 
+import { useThemeColors } from "@/features/settings/hooks";
+
 interface LinePoint {
   label: string;
   value: number;
@@ -33,6 +35,7 @@ export function LineChart({
   showLabels = true,
   showDots = true,
 }: Props) {
+  const colors = useThemeColors();
   if (data.length < 2) return null;
 
   const maxVal = useMemo(() => Math.max(...data.map((d) => d.value), 1), [data]);
@@ -80,7 +83,7 @@ export function LineChart({
             const y = chartH - padding.bottom - ((tick - minVal) / range) * (chartH - padding.top - padding.bottom);
             return (
               <G key={i}>
-                <Line x1={0} y1={y} x2={chartW} y2={y} stroke="#2f372e" strokeWidth={0.5} />
+                <Line x1={0} y1={y} x2={chartW} y2={y} stroke={colors.surfaceBorder} strokeWidth={0.5} />
               </G>
             );
           })}
@@ -90,7 +93,7 @@ export function LineChart({
 
         {showDots &&
           points.map((p, i) => (
-            <Circle key={i} cx={p.x} cy={p.y} r={3} fill={color} stroke="#0e150e" strokeWidth={1.5} />
+            <Circle key={i} cx={p.x} cy={p.y} r={3} fill={color} stroke={colors.surfaceBase} strokeWidth={1.5} />
           ))}
       </Svg>
     </View>

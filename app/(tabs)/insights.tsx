@@ -13,6 +13,7 @@ import {
   useSpendingTrends,
   useWeeklyInsights,
 } from "@/features/insights/hooks";
+import { useThemeColors } from "@/features/settings/hooks";
 import { useReceipts } from "@/features/receipts/hooks";
 import { getCategoryMeta } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
@@ -20,6 +21,7 @@ import { formatCurrency } from "@/lib/utils";
 type TimePeriod = "week" | "month";
 
 export default function InsightsScreen() {
+  const colors = useThemeColors();
   const receipts = useReceipts();
   const weekly = useWeeklyInsights();
   const monthly = useMonthlyInsights();
@@ -85,7 +87,7 @@ export default function InsightsScreen() {
           <Text className="text-headline-lg mb-6">Insights</Text>
           <View className="flex-1 items-center justify-center">
             <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-surface-container">
-              <Ionicons name="bar-chart-outline" size={36} color="#3d4a3d" />
+              <Ionicons name="bar-chart-outline" size={36} color={colors.isDark ? "#3d4a3d" : "#cbd5e1"} />
             </View>
             <Text className="mb-2 text-lg font-semibold text-surface-text">
               No insights yet
@@ -121,7 +123,7 @@ export default function InsightsScreen() {
             <Ionicons
               name="notifications-outline"
               size={20}
-              color="#dce5d9"
+              color={colors.text}
             />
           </View>
         </View>
@@ -136,7 +138,7 @@ export default function InsightsScreen() {
             <Text className="text-xs font-semibold text-on-surface-variant">
               {period === "week" ? "This Week" : "This Month"}
             </Text>
-            <Ionicons name="chevron-down" size={14} color="#869585" />
+            <Ionicons name="chevron-down" size={14} color={colors.chevron} />
           </Pressable>
         </View>
 
@@ -260,10 +262,13 @@ export default function InsightsScreen() {
           <View className="ai-alert-card mb-4">
             <View className="mb-3 flex-row items-center gap-3">
               <LinearGradient
-                colors={["rgba(173,198,255,0.15)", "rgba(209,189,255,0.15)"]}
+                colors={colors.isDark 
+                  ? ["rgba(173,198,255,0.15)", "rgba(209,189,255,0.15)"] 
+                  : ["rgba(5,102,217,0.1)", "rgba(184,156,255,0.1)"]
+                }
                 className="h-10 w-10 items-center justify-center rounded-full"
               >
-                <Ionicons name="sparkles" size={20} color="#adc6ff" />
+                <Ionicons name="sparkles" size={20} color={colors.isDark ? "#adc6ff" : "#0566d9"} />
               </LinearGradient>
               <Text className="text-body font-semibold text-surface-text">
                 AI Alert

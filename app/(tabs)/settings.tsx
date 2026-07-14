@@ -4,6 +4,8 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/hooks";
+import { useSettingsStore, type ThemeMode } from "@/features/settings/store";
+import { useThemeColors } from "@/features/settings/hooks";
 
 function SettingsGroup({ children }: { children: React.ReactNode }) {
   return <View className="settings-group">{children}</View>;
@@ -22,6 +24,8 @@ function SettingsRow({
   href?: string;
   onPress?: () => void;
 }) {
+  const colors = useThemeColors();
+  
   const handlePress = () => {
     if (onPress) onPress();
     else if (href) router.push(href as Href);
@@ -30,13 +34,13 @@ function SettingsRow({
   return (
     <Pressable onPress={handlePress} className="settings-row active:opacity-70">
       <View className="w-6 h-6 items-center justify-center">
-        <Ionicons name={icon} size={20} color="#dce5d9" />
+        <Ionicons name={icon} size={20} color={colors.text} />
       </View>
       <Text className="flex-1 text-sm font-medium text-surface-text">{label}</Text>
       {value && (
         <Text className="text-sm text-muted">{value}</Text>
       )}
-      <Ionicons name="chevron-forward" size={18} color="#5a6d5a" />
+      <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
     </Pressable>
   );
 }
@@ -64,9 +68,18 @@ function SettingsRowBorder({
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
+  const settings = useSettingsStore();
+  const colors = useThemeColors();
+
   const userInitial = user?.name?.charAt(0)?.toUpperCase() ?? "U";
   const userName = user?.name ?? "User";
   const userEmail = user?.email ?? "";
+
+  const themeDisplay = {
+    light: "Light",
+    dark: "Dark",
+    system: "System Default",
+  }[settings.themeMode];
 
   const handleSignOut = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -83,6 +96,24 @@ export default function SettingsScreen() {
           }
         },
       },
+    ]);
+  };
+
+  const handleThemeChange = () => {
+    Alert.alert("Select Theme", "Choose your appearance preference", [
+      {
+        text: "Light Mode",
+        onPress: () => settings.setThemeMode("light" as ThemeMode),
+      },
+      {
+        text: "Dark Mode",
+        onPress: () => settings.setThemeMode("dark" as ThemeMode),
+      },
+      {
+        text: "System Default",
+        onPress: () => settings.setThemeMode("system" as ThemeMode),
+      },
+      { text: "Cancel", style: "cancel" },
     ]);
   };
 
@@ -104,7 +135,7 @@ export default function SettingsScreen() {
           ) : null}
           {user?.plan && user.plan !== "free" && (
             <View className="pro-badge">
-              <Ionicons name="diamond-outline" size={12} color="#4be277" />
+              <Ionicons name="diamond-outline" size={12} color={colors.brand} />
               <Text className="text-xs font-bold text-brand">
                 {user.plan.toUpperCase()} PLAN
               </Text>
@@ -117,13 +148,26 @@ export default function SettingsScreen() {
           <SettingsRow icon="person-outline" label="Account" onPress={() => {}} />
           <SettingsRowBorder icon="desktop-outline" label="Subscription" />
           <SettingsRowBorder icon="card-outline" label="Payment Methods" />
-          <SettingsRowBorder icon="download-outline" label="Data & Export" />
+          <SettingsRowBorder
+            icon="download-outline"
+            label="Data & Export"
+            href="settings/data-export"
+          />
         </SettingsGroup>
 
         {/* Preferences Group */}
         <SettingsGroup>
-          <SettingsRow icon="notifications-outline" label="Notifications" onPress={() => {}} />
-          <SettingsRowBorder icon="moon-outline" label="Theme" value="Dark" />
+          <SettingsRow
+            icon="notifications-outline"
+            label="Notifications"
+            href="settings/notifications"
+          />
+          <SettingsRowBorder
+            icon="moon-outline"
+            label="Theme"
+            value={themeDisplay}
+            onPress={handleThemeChange}
+          />
         </SettingsGroup>
 
         {/* Support Group */}
