@@ -29,13 +29,13 @@ export function useScanner() {
   });
 
   const processImage = useCallback(
-    async (uri: string): Promise<ScanOutcome | null> => {
+    async (uri: string, source: "camera" | "gallery" = "camera"): Promise<ScanOutcome | null> => {
       setState({ isProcessing: true, error: null });
       try {
         const prepared = await prepareReceiptImage(uri);
         const result = await extractReceiptData(prepared);
         setState({ isProcessing: false, error: null });
-        return { imageUri: prepared.uri, result, source: "camera" };
+        return { imageUri: prepared.uri, result, source };
       } catch (err) {
         setState({
           isProcessing: false,
@@ -86,7 +86,7 @@ export function useScanner() {
     });
 
     if (picked.canceled || !picked.assets[0]) return null;
-    return processImage(picked.assets[0].uri);
+    return processImage(picked.assets[0].uri, "gallery");
   }, [processImage]);
 
   const pickPDF = useCallback(async (): Promise<ScanOutcome | null> => {

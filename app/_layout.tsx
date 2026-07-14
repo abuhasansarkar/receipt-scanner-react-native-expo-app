@@ -8,7 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { isClerkConfigured, publishableKey, tokenCache } from "@/lib/clerk";
+import { AuthProvider } from "@/features/auth/provider";
 
 function RootLayoutInner() {
   return (
@@ -37,21 +37,13 @@ function RootLayoutInner() {
 }
 
 export default function RootLayout() {
-  const content = (
+  return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <RootLayoutInner />
+        <AuthProvider>
+          <RootLayoutInner />
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
-
-  if (isClerkConfigured) {
-    return (
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        {content}
-      </ClerkProvider>
-    );
-  }
-
-  return content;
 }

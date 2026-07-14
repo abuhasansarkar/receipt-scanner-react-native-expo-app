@@ -77,7 +77,7 @@ export default function SettingsScreen() {
         onPress: async () => {
           try {
             await signOut();
-            router.replace("/(auth)/welcome" as Href);
+            router.replace("/(auth)/sign-in" as Href);
           } catch {
             Alert.alert("Error", "Failed to sign out. Please try again.");
           }
