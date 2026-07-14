@@ -108,5 +108,9 @@ export function useScanner() {
     }
   }, [processPDF]);
 
-  return { ...state, processImage, processPDF, pickFromLibrary, pickPDF };
+  const clearError = useCallback(() => {
+    setState((s) => ({ ...s, error: null }));
+  }, []);
+
+  return { ...state, processImage, processPDF, pickFromLibrary, pickPDF, clearError };
 }
