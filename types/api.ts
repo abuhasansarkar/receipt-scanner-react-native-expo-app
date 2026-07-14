@@ -8,7 +8,6 @@ export interface ScanResultItem {
   price: number;
   quantity?: number;
   confidence?: number;
-  category?: string;
 }
 
 export interface ScanResult {

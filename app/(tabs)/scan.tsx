@@ -200,7 +200,7 @@ export default function ScanScreen() {
             className="items-center justify-center rounded-full"
             style={{
               width: 40,
-              height: 100,
+              height: 40,
               borderRadius: 20,
               backgroundColor: torchEnabled ? "#4be277" : "rgba(0,0,0,0.45)",
             }}

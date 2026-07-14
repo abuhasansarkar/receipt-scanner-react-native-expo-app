@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useReceipt, useReceiptActions } from "@/features/receipts/hooks";
@@ -38,6 +38,10 @@ export default function ReceiptDetailScreen() {
 
   const handleSave = () => {
     const parsedTotal = Number.parseFloat(total);
+    if (Number.isNaN(parsedTotal) || parsedTotal < 0) {
+      Alert.alert("Invalid amount", "Please enter a valid positive number for the total.");
+      return;
+    }
     updateReceipt(receipt.id, {
       merchant: merchant.trim() || receipt.merchant,
       total: Number.isFinite(parsedTotal) ? parsedTotal : receipt.total,
@@ -69,10 +73,15 @@ export default function ReceiptDetailScreen() {
         <View className="w-8" />
       </View>
 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
+      >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Receipt Image Preview */}
         <View className="mb-5 overflow-hidden rounded-2xl border border-surface-border bg-surface-container relative">
@@ -205,6 +214,7 @@ export default function ReceiptDetailScreen() {
           <Text className="text-sm font-medium text-red-500">Delete Receipt</Text>
         </Pressable>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

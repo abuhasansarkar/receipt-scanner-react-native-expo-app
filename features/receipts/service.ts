@@ -1,4 +1,5 @@
-import { isSupabaseConfigured, supabase, syncReceiptsUp } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase, syncReceiptsUp, supabaseRowToReceipt } from "@/lib/supabase";
+import { deleteFile } from "@/lib/utils";
 import type { Receipt, ReceiptDraft } from "@/types/receipt";
 
 import { useReceiptStore } from "./store";
@@ -21,6 +22,10 @@ export const ReceiptService = {
   },
 
   remove(id: string): void {
+    const receipt = useReceiptStore.getState().getReceipt(id);
+    if (receipt?.imageUri) {
+      deleteFile(receipt.imageUri).catch(() => {});
+    }
     useReceiptStore.getState().removeReceipt(id);
   },
 
@@ -47,5 +52,15 @@ export const ReceiptService = {
 
     if (error) throw error;
     if (!data) return;
+
+    const store = useReceiptStore.getState();
+    const localReceipts = store.receipts;
+    for (const row of data) {
+      const receipt = supabaseRowToReceipt(row as Record<string, unknown>);
+      const existing = localReceipts.find((r) => r.id === receipt.id);
+      if (!existing || new Date(receipt.updatedAt) > new Date(existing.updatedAt)) {
+        store.addOrReplaceReceipt(receipt);
+      }
+    }
   },
 };

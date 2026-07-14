@@ -5,10 +5,13 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { generateId } from "@/lib/utils";
 import type { Receipt, ReceiptDraft } from "@/types/receipt";
 
+const MAX_RECEIPTS = 500;
+
 interface ReceiptState {
   receipts: Receipt[];
   hasHydrated: boolean;
   addReceipt: (draft: ReceiptDraft) => Receipt;
+  addOrReplaceReceipt: (receipt: Receipt) => void;
   updateReceipt: (id: string, data: Partial<Receipt>) => void;
   removeReceipt: (id: string) => void;
   getReceipt: (id: string) => Receipt | undefined;
@@ -34,8 +37,30 @@ export const useReceiptStore = create<ReceiptState>()(
           createdAt: now,
           updatedAt: now,
         };
-        set((state) => ({ receipts: [receipt, ...state.receipts] }));
+        set((state) => {
+          const updated = [receipt, ...state.receipts];
+          if (updated.length > MAX_RECEIPTS) {
+            updated.length = MAX_RECEIPTS;
+          }
+          return { receipts: updated };
+        });
         return receipt;
+      },
+
+      addOrReplaceReceipt: (receipt) => {
+        set((state) => {
+          const exists = state.receipts.findIndex((r) => r.id === receipt.id);
+          if (exists >= 0) {
+            const updated = [...state.receipts];
+            updated[exists] = receipt;
+            return { receipts: updated };
+          }
+          const updated = [receipt, ...state.receipts];
+          if (updated.length > MAX_RECEIPTS) {
+            updated.length = MAX_RECEIPTS;
+          }
+          return { receipts: updated };
+        });
       },
 
       updateReceipt: (id, data) =>

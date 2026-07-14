@@ -77,7 +77,7 @@ export default function InsightsScreen() {
               <Text className="text-sm font-semibold text-brand">U</Text>
             </View>
             <Text className="text-lg font-bold tracking-tight text-brand">
-              AuraReceipt
+              ReceiptBrain
             </Text>
           </View>
           <View className="icon-40">
@@ -88,7 +88,10 @@ export default function InsightsScreen() {
         {/* Title + Period Selector */}
         <View className="flex-row items-center justify-between mb-5">
           <Text className="text-headline-lg">Insights</Text>
-          <Pressable className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5">
+          <Pressable
+            onPress={() => setPeriod(period === "week" ? "month" : "week")}
+            className="flex-row items-center gap-1.5 rounded-full border border-surface-border bg-surface-container px-3 py-1.5"
+          >
             <Text className="text-xs font-semibold text-on-surface-variant">
               {period === "week" ? "This Week" : "This Month"}
             </Text>

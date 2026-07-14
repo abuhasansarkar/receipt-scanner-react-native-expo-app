@@ -98,7 +98,7 @@ export default function ReportsScreen() {
               <Text className="text-sm font-semibold text-brand">U</Text>
             </View>
             <Text className="text-lg font-bold tracking-tight text-brand">
-              AuraReceipt
+              ReceiptBrain
             </Text>
           </View>
           <View className="icon-40">

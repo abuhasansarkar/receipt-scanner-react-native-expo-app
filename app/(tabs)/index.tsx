@@ -58,7 +58,7 @@ export default function DashboardScreen() {
               <Text className="text-sm font-semibold text-brand">{userInitial}</Text>
             </View>
             <Text className="text-lg font-bold tracking-tight text-brand">
-              AuraReceipt
+              ReceiptBrain
             </Text>
           </View>
           <View className="icon-40">

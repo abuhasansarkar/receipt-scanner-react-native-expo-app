@@ -110,7 +110,7 @@ export default function SettingsScreen() {
 
         {/* Account Group */}
         <SettingsGroup>
-          <SettingsRow icon="person-outline" label="Account" href="/settings/profile" />
+          <SettingsRow icon="person-outline" label="Account" onPress={() => {}} />
           <SettingsRowBorder icon="desktop-outline" label="Subscription" />
           <SettingsRowBorder icon="card-outline" label="Payment Methods" />
           <SettingsRowBorder icon="download-outline" label="Data & Export" />
@@ -118,14 +118,14 @@ export default function SettingsScreen() {
 
         {/* Preferences Group */}
         <SettingsGroup>
-          <SettingsRow icon="notifications-outline" label="Notifications" href="/settings/notifications" />
+          <SettingsRow icon="notifications-outline" label="Notifications" onPress={() => {}} />
           <SettingsRowBorder icon="moon-outline" label="Theme" value="Dark" />
         </SettingsGroup>
 
         {/* Support Group */}
         <SettingsGroup>
           <SettingsRow icon="help-circle-outline" label="Help & Support" />
-          <SettingsRowBorder icon="information-circle-outline" label="About AuraReceipt" />
+          <SettingsRowBorder icon="information-circle-outline" label="About ReceiptBrain" />
         </SettingsGroup>
 
         {/* Sign Out */}

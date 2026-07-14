@@ -51,10 +51,10 @@ export async function syncReceiptsDown(): Promise<Receipt[]> {
   if (error) throw error;
   if (!data) return [];
 
-  return data.map(toReceipt);
+  return data.map(supabaseRowToReceipt);
 }
 
-function toReceipt(row: Record<string, unknown>): Receipt {
+export function supabaseRowToReceipt(row: Record<string, unknown>): Receipt {
   return {
     id: String(row.id),
     merchant: String(row.merchant),
