@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { AuthService } from "@/features/auth/service";
 import { isClerkConfigured } from "@/lib/clerk";
 
-export default function SignInScreen() {
+export function ClerkSignInScreen() {
   const router = useRouter();
   const { signIn, setActive, isLoaded } = useSignIn();
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: "oauth_google" });
@@ -28,7 +28,7 @@ export default function SignInScreen() {
     setPending(true);
     setError(null);
     try {
-      if (isClerkConfigured && signIn) {
+      if (signIn) {
         const result = await signIn.create({ identifier: email.trim() });
         if (result.status === "needs_first_factor") {
           const emailCodeFactor = result.supportedFirstFactors?.find(
@@ -45,9 +45,6 @@ export default function SignInScreen() {
           await setActive?.({ session: result.createdSessionId });
           router.replace("/(tabs)");
         }
-      } else {
-        AuthService.signIn(email.trim(), email.trim());
-        router.replace("/(tabs)");
       }
     } catch (err) {
       if (isClerkAPIResponseError(err)) {
@@ -65,7 +62,7 @@ export default function SignInScreen() {
     setPending(true);
     setError(null);
     try {
-      if (signIn && isClerkConfigured) {
+      if (signIn) {
         const result = await signIn.attemptFirstFactor({
           strategy: "email_code",
           code: code.trim(),
@@ -181,46 +178,42 @@ export default function SignInScreen() {
 
           <Button label="Send verification code" onPress={handleSendCode} disabled={!email.trim() || busy} loading={busy} />
 
-          {isClerkConfigured && (
-            <>
-              <View className="my-6 flex-row items-center gap-3">
-                <View className="flex-1 h-px bg-surface-border" />
-                <Text className="text-xs text-muted">Or continue with</Text>
-                <View className="flex-1 h-px bg-surface-border" />
-              </View>
+          <View className="my-6 flex-row items-center gap-3">
+            <View className="flex-1 h-px bg-surface-border" />
+            <Text className="text-xs text-muted">Or continue with</Text>
+            <View className="flex-1 h-px bg-surface-border" />
+          </View>
 
-              <View className="flex-row gap-3">
-                <Pressable
-                  onPress={() => handleSocialSignIn("google")}
-                  disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
-                >
-                  {socialPending === "google" ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <>
-                      <Ionicons name="logo-google" size={18} color="#dce5d9" />
-                      <Text className="text-sm font-medium text-surface-text">Google</Text>
-                    </>
-                  )}
-                </Pressable>
-                <Pressable
-                  onPress={() => handleSocialSignIn("apple")}
-                  disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
-                >
-                  {socialPending === "apple" ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <>
-                      <Ionicons name="logo-apple" size={18} color="#dce5d9" />
-                      <Text className="text-sm font-medium text-surface-text">Apple</Text>
-                    </>
-                  )}
-                </Pressable>
-              </View>
-            </>
-          )}
+          <View className="flex-row gap-3">
+            <Pressable
+              onPress={() => handleSocialSignIn("google")}
+              disabled={socialPending !== null}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
+            >
+              {socialPending === "google" ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={18} color="#dce5d9" />
+                  <Text className="text-sm font-medium text-surface-text">Google</Text>
+                </>
+              )}
+            </Pressable>
+            <Pressable
+              onPress={() => handleSocialSignIn("apple")}
+              disabled={socialPending !== null}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
+            >
+              {socialPending === "apple" ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="logo-apple" size={18} color="#dce5d9" />
+                  <Text className="text-sm font-medium text-surface-text">Apple</Text>
+                </>
+              )}
+            </Pressable>
+          </View>
 
           <View className="mt-6 flex-row justify-center gap-1">
             <Text className="text-sm text-muted">No account?</Text>
@@ -235,4 +228,74 @@ export default function SignInScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+export function LocalSignInScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSendCode = async () => {
+    if (!email.trim() || pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      AuthService.signIn(email.trim(), email.trim());
+      router.replace("/(tabs)");
+    } catch (err) {
+      setError("Something went wrong");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-surface-base">
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+        <View className="flex-1 justify-center px-8">
+          <View className="mb-8 items-center">
+            <View className="mb-4 items-center justify-center rounded-2xl">
+              <Image source={require("@/assets/images/receipt.png")} className="h-60 w-60" />
+            </View>
+            <Text className="text-2xl font-bold text-surface-text">Welcome back (Offline)</Text>
+            <Text className="mt-1 text-sm text-muted">Sign in to your account locally</Text>
+          </View>
+
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email address"
+            placeholderTextColor="#5a6d5a"
+            className="mb-4 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-surface-text"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {error && (
+            <Text className="-mt-3 mb-4 text-xs text-red-400">{error}</Text>
+          )}
+
+          <Button label="Sign In" onPress={handleSendCode} disabled={!email.trim() || pending} loading={pending} />
+
+          <View className="mt-6 flex-row justify-center gap-1">
+            <Text className="text-sm text-muted">No account?</Text>
+            <Pressable onPress={() => router.push("/(auth)/sign-up" as Href)}>
+              <Text className="text-sm font-semibold text-brand">Sign up</Text>
+            </Pressable>
+          </View>
+          <Pressable onPress={() => router.replace("/(tabs)")} className="mt-4 items-center">
+            <Text className="text-sm text-muted">Continue offline</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+export default function SignInScreen() {
+  if (isClerkConfigured) {
+    return <ClerkSignInScreen />;
+  }
+  return <LocalSignInScreen />;
 }

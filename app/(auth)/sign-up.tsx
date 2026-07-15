@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { AuthService } from "@/features/auth/service";
 import { isClerkConfigured } from "@/lib/clerk";
 
-export default function SignUpScreen() {
+export function ClerkSignUpScreen() {
   const router = useRouter();
   const { signUp, setActive, isLoaded } = useSignUp();
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: "oauth_google" });
@@ -29,15 +29,12 @@ export default function SignUpScreen() {
     setPending(true);
     setError(null);
     try {
-      if (isClerkConfigured && signUp) {
+      if (signUp) {
         await signUp.create({ emailAddress: email.trim() });
         await signUp.prepareEmailAddressVerification({
           strategy: "email_code",
         });
         setShowCodeInput(true);
-      } else {
-        AuthService.signIn(name.trim() || email.trim(), email.trim());
-        router.replace("/(tabs)");
       }
     } catch (err) {
       if (isClerkAPIResponseError(err)) {
@@ -55,7 +52,7 @@ export default function SignUpScreen() {
     setPending(true);
     setError(null);
     try {
-      if (signUp && isClerkConfigured) {
+      if (signUp) {
         await signUp.attemptEmailAddressVerification({ code: code.trim() });
 
         const trySetSession = async (sid: string | null | undefined) => {
@@ -227,46 +224,42 @@ export default function SignUpScreen() {
 
           <Button label="Send verification code" onPress={handleSendCode} disabled={!email.trim() || busy} loading={busy} />
 
-          {isClerkConfigured && (
-            <>
-              <View className="my-6 flex-row items-center gap-3">
-                <View className="flex-1 h-px bg-surface-border" />
-                <Text className="text-xs text-muted">Or continue with</Text>
-                <View className="flex-1 h-px bg-surface-border" />
-              </View>
+          <View className="my-6 flex-row items-center gap-3">
+            <View className="flex-1 h-px bg-surface-border" />
+            <Text className="text-xs text-muted">Or continue with</Text>
+            <View className="flex-1 h-px bg-surface-border" />
+          </View>
 
-              <View className="flex-row gap-3">
-                <Pressable
-                  onPress={() => handleSocialSignUp("google")}
-                  disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
-                >
-                  {socialPending === "google" ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <>
-                      <Ionicons name="logo-google" size={18} color="#dce5d9" />
-                      <Text className="text-sm font-medium text-surface-text">Google</Text>
-                    </>
-                  )}
-                </Pressable>
-                <Pressable
-                  onPress={() => handleSocialSignUp("apple")}
-                  disabled={socialPending !== null}
-                  className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
-                >
-                  {socialPending === "apple" ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <>
-                      <Ionicons name="logo-apple" size={18} color="#dce5d9" />
-                      <Text className="text-sm font-medium text-surface-text">Apple</Text>
-                    </>
-                  )}
-                </Pressable>
-              </View>
-            </>
-          )}
+          <View className="flex-row gap-3">
+            <Pressable
+              onPress={() => handleSocialSignUp("google")}
+              disabled={socialPending !== null}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
+            >
+              {socialPending === "google" ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={18} color="#dce5d9" />
+                  <Text className="text-sm font-medium text-surface-text">Google</Text>
+                </>
+              )}
+            </Pressable>
+            <Pressable
+              onPress={() => handleSocialSignUp("apple")}
+              disabled={socialPending !== null}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 active:opacity-70"
+            >
+              {socialPending === "apple" ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="logo-apple" size={18} color="#dce5d9" />
+                  <Text className="text-sm font-medium text-surface-text">Apple</Text>
+                </>
+              )}
+            </Pressable>
+          </View>
 
           <View className="mt-6 flex-row justify-center gap-1">
             <Text className="text-sm text-muted">Already have an account?</Text>
@@ -278,4 +271,80 @@ export default function SignUpScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+export function LocalSignUpScreen() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignUp = async () => {
+    if (!email.trim() || pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      AuthService.signIn(name.trim() || email.trim(), email.trim());
+      router.replace("/(tabs)");
+    } catch (err) {
+      setError("Something went wrong");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-surface-base">
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+        <View className="flex-1 justify-center px-8">
+          <View className="mb-8 items-center">
+            <View className="mb-4 items-center justify-center rounded-2xl">
+              <Image source={require("@/assets/images/receipt.png")} className="h-60 w-60" />
+            </View>
+            <Text className="text-2xl font-bold text-surface-text">Create account (Offline)</Text>
+            <Text className="mt-1 text-sm text-muted">Register locally on this device</Text>
+          </View>
+
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            placeholder="Your name (optional)"
+            placeholderTextColor="#5a6d5a"
+            className="mb-4 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-surface-text"
+            autoCapitalize="words"
+          />
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email address"
+            placeholderTextColor="#5a6d5a"
+            className="mb-4 rounded-xl border border-surface-border bg-surface-container px-4 py-3.5 text-surface-text"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {error && (
+            <Text className="-mt-3 mb-4 text-xs text-red-400">{error}</Text>
+          )}
+
+          <Button label="Sign Up" onPress={handleSignUp} disabled={!email.trim() || pending} loading={pending} />
+
+          <View className="mt-6 flex-row justify-center gap-1">
+            <Text className="text-sm text-muted">Already have an account?</Text>
+            <Pressable onPress={() => router.push("/(auth)/sign-in" as Href)}>
+              <Text className="text-sm font-semibold text-brand">Sign in</Text>
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+export default function SignUpScreen() {
+  if (isClerkConfigured) {
+    return <ClerkSignUpScreen />;
+  }
+  return <LocalSignUpScreen />;
 }

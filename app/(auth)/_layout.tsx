@@ -4,19 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 
 import { isClerkConfigured } from "@/lib/clerk";
 
-export default function AuthLayout() {
-  if (isClerkConfigured) {
-    const { isSignedIn, isLoaded } = useAuth({ treatPendingAsSignedOut: false });
-    if (!isLoaded) {
-      return (
-        <View className="flex-1 items-center justify-center bg-surface-base">
-          <ActivityIndicator size="large" color="#4be277" />
-        </View>
-      );
-    }
-    if (isSignedIn) return <Redirect href="/(tabs)" />;
-  }
-
+function AuthStack() {
   return (
     <Stack
       screenOptions={{
@@ -28,4 +16,30 @@ export default function AuthLayout() {
       <Stack.Screen name="sign-up" />
     </Stack>
   );
+}
+
+function ClerkAuthLayout() {
+  const { isSignedIn, isLoaded } = useAuth({ treatPendingAsSignedOut: false });
+
+  if (!isLoaded) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface-base">
+        <ActivityIndicator size="large" color="#4be277" />
+      </View>
+    );
+  }
+
+  if (isSignedIn) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  return <AuthStack />;
+}
+
+export default function AuthLayout() {
+  if (isClerkConfigured) {
+    return <ClerkAuthLayout />;
+  }
+
+  return <AuthStack />;
 }
